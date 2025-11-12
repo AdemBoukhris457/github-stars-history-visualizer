@@ -1338,26 +1338,25 @@
             const repoList = Object.keys(chartData);
             const currentUrl = window.location.origin;
             
-            // Generate chart image as base64
-            const chartImageUrl = chart.toBase64Image('image/png', 1.0);
-            
             // Generate short markdown format similar to star-history.com
             // Format: [![Star History Chart](image-url)](link-url)
-            // Use the actual chart image (base64 data URI)
+            // Use dynamic API endpoint that auto-updates
             let markdown;
             
             if (repoList.length === 1) {
-                // Single repository - use actual chart image
+                // Single repository - use dynamic image endpoint
                 const repo = repoList[0];
+                const imageUrl = `${currentUrl}/api/chart-image?repos=${encodeURIComponent(repo)}`;
                 const linkUrl = `${currentUrl}?repo=${encodeURIComponent(repo)}`;
                 
-                markdown = `[![Star History Chart](${chartImageUrl})](${linkUrl})`;
+                markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
             } else {
-                // Multiple repositories - use actual chart image
+                // Multiple repositories - use dynamic image endpoint
                 const reposParam = repoList.join(',');
+                const imageUrl = `${currentUrl}/api/chart-image?repos=${encodeURIComponent(reposParam)}`;
                 const linkUrl = `${currentUrl}?repos=${encodeURIComponent(reposParam)}`;
                 
-                markdown = `[![Star History Chart](${chartImageUrl})](${linkUrl})`;
+                markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
             }
 
             // Copy to clipboard

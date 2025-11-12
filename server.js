@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs').promises;
 const path = require('path');
 const net = require('net');
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
 const app = express();
 
@@ -162,6 +163,134 @@ function buildStarsHistory(stargazers) {
   return timeline;
 }
 
+// Generate chart image from timeline data
+async function generateChartImage(timelineData, width = 800, height = 400) {
+  try {
+    const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height, backgroundColour: 'white' });
+
+    // Prepare data
+    const allDates = new Set();
+    timelineData.forEach(data => {
+      if (data.timeline) {
+        data.timeline.forEach(point => allDates.add(point.date));
+      }
+    });
+
+    const sortedDates = Array.from(allDates).sort();
+    const datasets = [];
+    const colors = [
+      '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
+      '#9333ea', '#ea580c', '#0891b2', '#be185d'
+    ];
+
+    timelineData.forEach((data, index) => {
+      if (!data.timeline) return;
+
+      const timelineMap = {};
+      data.timeline.forEach(point => {
+        timelineMap[point.date] = point.stars;
+      });
+
+      const starsData = sortedDates.map(date => {
+        let lastCount = 0;
+        for (let i = 0; i < sortedDates.length; i++) {
+          if (sortedDates[i] > date) break;
+          lastCount = timelineMap[sortedDates[i]] || lastCount;
+        }
+        return lastCount;
+      });
+
+      const color = colors[index % colors.length];
+      datasets.push({
+        label: `${data.owner}/${data.repo}`,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + '15',
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 3
+      });
+    });
+
+    const configuration = {
+      type: 'line',
+      data: {
+        labels: sortedDates,
+        datasets: datasets
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'GitHub Stars Over Time',
+            font: { size: 18, weight: '600' },
+            color: '#1f2937'
+          },
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 15,
+              font: { size: 12 },
+              color: '#374151'
+            }
+          }
+        },
+        scales: {
+          x: {
+            display: true,
+            grid: {
+              display: true,
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              font: { size: 10 },
+              color: '#6b7280',
+              maxRotation: 45
+            },
+            title: {
+              display: true,
+              text: 'Date',
+              font: { size: 12, weight: '600' },
+              color: '#374151'
+            }
+          },
+          y: {
+            display: true,
+            grid: {
+              display: true,
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              font: { size: 10 },
+              color: '#6b7280',
+              callback: function(value) {
+                return value.toLocaleString();
+              }
+            },
+            title: {
+              display: true,
+              text: 'Number of Stars',
+              font: { size: 12, weight: '600' },
+              color: '#374151'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    };
+
+    const imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
+    return imageBuffer;
+  } catch (error) {
+    console.error('Error generating chart image:', error);
+    throw error;
+  }
+}
+
 // API endpoint to get stars history
 app.post('/api/stars-history', async (req, res) => {
   try {
@@ -210,7 +339,7 @@ app.post('/api/stars-history', async (req, res) => {
   }
 });
 
-// API endpoint to serve chart image (for markdown badges)
+// API endpoint to serve chart image (for markdown - auto-updates)
 app.get('/api/chart-image', async (req, res) => {
   try {
     const { repos } = req.query;
@@ -218,11 +347,73 @@ app.get('/api/chart-image', async (req, res) => {
       return res.status(400).json({ error: 'Repos parameter is required' });
     }
 
-    // For now, return a simple redirect or placeholder
-    // In the future, this could generate and return an actual chart image
-    // For markdown compatibility, redirect to a badge or the app
-    res.redirect(`https://img.shields.io/badge/Star_History-View_Chart-blue?style=flat-square`);
+    // Parse repositories (can be single repo or comma-separated)
+    const repoList = repos.split(',').map(repo => repo.trim());
+    const repositories = repoList.map(repo => {
+      const [owner, repoName] = repo.split('/');
+      return { owner: owner.trim(), repo: repoName.trim() };
+    });
+
+    // Fetch or load data for all repositories
+    const timelineData = [];
+    for (const repo of repositories) {
+      if (!repo.owner || !repo.repo) continue;
+
+      try {
+        // Try cache first (with 1 hour expiry for auto-updates)
+        const cached = await loadCache(repo.owner, repo.repo);
+        const cacheAge = cached ? (Date.now() - new Date(cached.lastUpdated).getTime()) : Infinity;
+        const cacheExpiry = 60 * 60 * 1000; // 1 hour
+
+        if (cached && cached.timeline && cached.timeline.length > 0 && cacheAge < cacheExpiry) {
+          timelineData.push({
+            owner: repo.owner,
+            repo: repo.repo,
+            timeline: cached.timeline
+          });
+        } else {
+          // Fetch fresh data if cache is old or missing
+          console.log(`Fetching fresh data for ${repo.owner}/${repo.repo}...`);
+          const stargazers = await fetchStargazers(repo.owner, repo.repo);
+          const timeline = buildStarsHistory(stargazers);
+
+          const result = {
+            owner: repo.owner,
+            repo: repo.repo,
+            timeline,
+            totalStars: stargazers.length,
+            lastUpdated: new Date().toISOString()
+          };
+
+          await saveCache(repo.owner, repo.repo, result);
+          timelineData.push({
+            owner: repo.owner,
+            repo: repo.repo,
+            timeline: timeline
+          });
+
+          // Small delay to avoid rate limits
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.error(`Error fetching ${repo.owner}/${repo.repo}:`, error.message);
+        // Continue with other repos even if one fails
+      }
+    }
+
+    if (timelineData.length === 0) {
+      return res.status(404).json({ error: 'No valid repository data found' });
+    }
+
+    // Generate chart image
+    const imageBuffer = await generateChartImage(timelineData);
+
+    // Set headers for image
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.send(imageBuffer);
   } catch (error) {
+    console.error('Error generating chart image:', error);
     res.status(500).json({ error: error.message });
   }
 });
