@@ -4,7 +4,6 @@ const cors = require('cors');
 const fs = require('fs').promises;
 const path = require('path');
 const net = require('net');
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
 const app = express();
 
@@ -163,132 +162,118 @@ function buildStarsHistory(stargazers) {
   return timeline;
 }
 
-// Generate chart image from timeline data
-async function generateChartImage(timelineData, width = 800, height = 400) {
-  try {
-    const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height, backgroundColour: 'white' });
+// Generate SVG chart from timeline data (no native dependencies needed)
+function generateChartSVG(timelineData, width = 800, height = 400) {
+  // Prepare data
+  const allDates = new Set();
+  timelineData.forEach(data => {
+    if (data.timeline) {
+      data.timeline.forEach(point => allDates.add(point.date));
+    }
+  });
 
-    // Prepare data
-    const allDates = new Set();
-    timelineData.forEach(data => {
-      if (data.timeline) {
-        data.timeline.forEach(point => allDates.add(point.date));
-      }
+  const sortedDates = Array.from(allDates).sort();
+  const colors = [
+    '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
+    '#9333ea', '#ea580c', '#0891b2', '#be185d'
+  ];
+
+  // Calculate chart dimensions
+  const padding = { top: 60, right: 40, bottom: 60, left: 80 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  // Process data for each repository
+  const datasets = [];
+  timelineData.forEach((data, index) => {
+    if (!data.timeline) return;
+
+    const timelineMap = {};
+    data.timeline.forEach(point => {
+      timelineMap[point.date] = point.stars;
     });
 
-    const sortedDates = Array.from(allDates).sort();
-    const datasets = [];
-    const colors = [
-      '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
-      '#9333ea', '#ea580c', '#0891b2', '#be185d'
-    ];
-
-    timelineData.forEach((data, index) => {
-      if (!data.timeline) return;
-
-      const timelineMap = {};
-      data.timeline.forEach(point => {
-        timelineMap[point.date] = point.stars;
-      });
-
-      const starsData = sortedDates.map(date => {
-        let lastCount = 0;
-        for (let i = 0; i < sortedDates.length; i++) {
-          if (sortedDates[i] > date) break;
-          lastCount = timelineMap[sortedDates[i]] || lastCount;
-        }
-        return lastCount;
-      });
-
-      const color = colors[index % colors.length];
-      datasets.push({
-        label: `${data.owner}/${data.repo}`,
-        data: starsData,
-        borderColor: color,
-        backgroundColor: color + '15',
-        borderWidth: 2.5,
-        fill: false,
-        tension: 0.1,
-        pointRadius: 3
-      });
+    const starsData = sortedDates.map(date => {
+      let lastCount = 0;
+      for (let i = 0; i < sortedDates.length; i++) {
+        if (sortedDates[i] > date) break;
+        lastCount = timelineMap[sortedDates[i]] || lastCount;
+      }
+      return lastCount;
     });
 
-    const configuration = {
-      type: 'line',
-      data: {
-        labels: sortedDates,
-        datasets: datasets
-      },
-      options: {
-        responsive: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'GitHub Stars Over Time',
-            font: { size: 18, weight: '600' },
-            color: '#1f2937'
-          },
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              usePointStyle: true,
-              padding: 15,
-              font: { size: 12 },
-              color: '#374151'
-            }
-          }
-        },
-        scales: {
-          x: {
-            display: true,
-            grid: {
-              display: true,
-              color: 'rgba(0, 0, 0, 0.05)'
-            },
-            ticks: {
-              font: { size: 10 },
-              color: '#6b7280',
-              maxRotation: 45
-            },
-            title: {
-              display: true,
-              text: 'Date',
-              font: { size: 12, weight: '600' },
-              color: '#374151'
-            }
-          },
-          y: {
-            display: true,
-            grid: {
-              display: true,
-              color: 'rgba(0, 0, 0, 0.05)'
-            },
-            ticks: {
-              font: { size: 10 },
-              color: '#6b7280',
-              callback: function(value) {
-                return value.toLocaleString();
-              }
-            },
-            title: {
-              display: true,
-              text: 'Number of Stars',
-              font: { size: 12, weight: '600' },
-              color: '#374151'
-            },
-            beginAtZero: true
-          }
-        }
-      }
-    };
+    datasets.push({
+      label: `${data.owner}/${data.repo}`,
+      data: starsData,
+      color: colors[index % colors.length]
+    });
+  });
 
-    const imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
-    return imageBuffer;
-  } catch (error) {
-    console.error('Error generating chart image:', error);
-    throw error;
+  // Find min/max values for scaling
+  const allValues = datasets.flatMap(d => d.data);
+  const minValue = Math.min(...allValues);
+  const maxValue = Math.max(...allValues);
+  const valueRange = maxValue - minValue || 1;
+
+  // Generate SVG path for each dataset
+  const paths = datasets.map((dataset, index) => {
+    const points = dataset.data.map((value, i) => {
+      const x = padding.left + (i / (sortedDates.length - 1 || 1)) * chartWidth;
+      const y = padding.top + chartHeight - ((value - minValue) / valueRange) * chartHeight;
+      return `${x},${y}`;
+    }).join(' L');
+
+    return `<polyline
+      points="M ${points}"
+      fill="none"
+      stroke="${dataset.color}"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />`;
+  }).join('\n    ');
+
+  // Generate grid lines
+  const gridLines = [];
+  // Horizontal grid lines
+  for (let i = 0; i <= 5; i++) {
+    const y = padding.top + (i / 5) * chartHeight;
+    const value = maxValue - (i / 5) * valueRange;
+    gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`);
+    gridLines.push(`<text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="#6b7280">${Math.round(value).toLocaleString()}</text>`);
   }
+
+  // Vertical grid lines (show fewer dates)
+  const dateStep = Math.max(1, Math.floor(sortedDates.length / 8));
+  for (let i = 0; i < sortedDates.length; i += dateStep) {
+    const x = padding.left + (i / (sortedDates.length - 1 || 1)) * chartWidth;
+    const date = sortedDates[i];
+    const dateLabel = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="#e5e7eb" stroke-width="1"/>`);
+    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 20}" text-anchor="middle" font-size="10" fill="#6b7280" transform="rotate(-45 ${x} ${height - padding.bottom + 20})">${dateLabel}</text>`);
+  }
+
+  // Generate legend
+  const legendItems = datasets.map((dataset, index) => {
+    const x = width - padding.right - 200 + (index % 2) * 100;
+    const y = 30 + Math.floor(index / 2) * 25;
+    return `<circle cx="${x}" cy="${y}" r="5" fill="${dataset.color}"/>
+      <text x="${x + 15}" y="${y + 5}" font-size="12" fill="#374151">${dataset.label}</text>`;
+  }).join('\n    ');
+
+  // Build SVG
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="${width}" height="${height}" fill="white"/>
+  <text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="600" fill="#1f2937">GitHub Stars Over Time</text>
+  ${gridLines.join('\n    ')}
+  ${paths}
+  <g id="legend">
+    ${legendItems}
+  </g>
+</svg>`;
+
+  return svg;
 }
 
 // API endpoint to get stars history
@@ -405,13 +390,13 @@ app.get('/api/chart-image', async (req, res) => {
       return res.status(404).json({ error: 'No valid repository data found' });
     }
 
-    // Generate chart image
-    const imageBuffer = await generateChartImage(timelineData);
+    // Generate chart SVG (no native dependencies needed)
+    const svg = generateChartSVG(timelineData);
 
-    // Set headers for image
-    res.setHeader('Content-Type', 'image/png');
+    // Set headers for SVG image
+    res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.send(imageBuffer);
+    res.send(svg);
   } catch (error) {
     console.error('Error generating chart image:', error);
     res.status(500).json({ error: error.message });
