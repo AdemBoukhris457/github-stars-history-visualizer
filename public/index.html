@@ -1338,26 +1338,26 @@
             const repoList = Object.keys(chartData);
             const currentUrl = window.location.origin;
             
+            // Generate chart image as base64
+            const chartImageUrl = chart.toBase64Image('image/png', 1.0);
+            
             // Generate short markdown format similar to star-history.com
             // Format: [![Star History Chart](image-url)](link-url)
-            // Using shields.io badge for a clean, short format
+            // Use the actual chart image (base64 data URI)
             let markdown;
             
             if (repoList.length === 1) {
-                // Single repository - short format matching star-history.com style
+                // Single repository - use actual chart image
                 const repo = repoList[0];
                 const linkUrl = `${currentUrl}?repo=${encodeURIComponent(repo)}`;
-                // Use shields.io badge - short and clean
-                const imageUrl = `https://img.shields.io/badge/Star_History-View_Chart-blue?style=flat-square`;
                 
-                markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
+                markdown = `[![Star History Chart](${chartImageUrl})](${linkUrl})`;
             } else {
-                // Multiple repositories
+                // Multiple repositories - use actual chart image
                 const reposParam = repoList.join(',');
                 const linkUrl = `${currentUrl}?repos=${encodeURIComponent(reposParam)}`;
-                const imageUrl = `https://img.shields.io/badge/Star_History-View_Chart-blue?style=flat-square`;
                 
-                markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
+                markdown = `[![Star History Chart](${chartImageUrl})](${linkUrl})`;
             }
 
             // Copy to clipboard
