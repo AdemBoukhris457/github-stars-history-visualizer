@@ -407,6 +407,53 @@
                 0 8px 32px rgba(15, 76, 117, 0.3);
         }
 
+        .chart-container.dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 
+                inset 0 2px 8px rgba(0,0,0,0.3),
+                0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .chart-container.minimal {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-shadow: none;
+        }
+
+        .chart-container.vibrant {
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 
+                inset 0 2px 8px rgba(0,0,0,0.1),
+                0 8px 32px rgba(255, 107, 107, 0.3);
+        }
+
+        .chart-container.pastel {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #fd79a8 100%);
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 
+                inset 0 2px 8px rgba(0,0,0,0.05),
+                0 8px 32px rgba(253, 121, 168, 0.2);
+        }
+
+        .chart-container.neon {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            box-shadow: 
+                inset 0 2px 8px rgba(0,0,0,0.5),
+                0 0 20px rgba(138, 43, 226, 0.3),
+                0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .chart-container.corporate {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            box-shadow: 
+                inset 0 2px 4px rgba(0,0,0,0.06),
+                0 4px 16px rgba(0,0,0,0.1);
+        }
+
         .export-buttons {
             display: flex;
             gap: 10px;
@@ -485,6 +532,12 @@
                     <select id="chartStyle" onchange="updateChart()">
                         <option value="professional">Professional</option>
                         <option value="aesthetic">Aesthetic</option>
+                        <option value="dark">Dark Mode</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="vibrant">Vibrant</option>
+                        <option value="pastel">Pastel</option>
+                        <option value="neon">Neon</option>
+                        <option value="corporate">Corporate</option>
                     </select>
                 </div>
             </div>
@@ -634,7 +687,17 @@
             const chartContainer = document.getElementById('chartContainer');
 
             // Update container class based on style
-            chartContainer.className = 'chart-container' + (chartStyle === 'aesthetic' ? ' aesthetic' : '');
+            const styleClasses = {
+                'professional': '',
+                'aesthetic': ' aesthetic',
+                'dark': ' dark',
+                'minimal': ' minimal',
+                'vibrant': ' vibrant',
+                'pastel': ' pastel',
+                'neon': ' neon',
+                'corporate': ' corporate'
+            };
+            chartContainer.className = 'chart-container' + (styleClasses[chartStyle] || '');
 
             // Destroy existing chart
             if (chart) {
@@ -674,20 +737,13 @@
                     return lastCount;
                 });
 
+                // Apply different styles based on chartStyle
                 if (chartStyle === 'professional') {
-                    // Professional style colors
                     const professionalColors = [
-                        '#2563eb', // Blue
-                        '#dc2626', // Red
-                        '#16a34a', // Green
-                        '#ca8a04', // Yellow
-                        '#9333ea', // Purple
-                        '#ea580c', // Orange
-                        '#0891b2', // Cyan
-                        '#be185d'  // Pink
+                        '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
+                        '#9333ea', '#ea580c', '#0891b2', '#be185d'
                     ];
                     const color = professionalColors[colorIndex % professionalColors.length];
-                    
                     datasets.push({
                         label: key,
                         data: starsData,
@@ -704,28 +760,24 @@
                         pointHoverBorderWidth: 3,
                         pointHoverBackgroundColor: '#fff'
                     });
-                } else {
-                    // Aesthetic style with gradients
+                } else if (chartStyle === 'aesthetic') {
                     const aestheticGradients = [
-                        { start: '#667eea', end: '#764ba2' }, // Purple gradient
-                        { start: '#f093fb', end: '#f5576c' }, // Pink gradient
-                        { start: '#4facfe', end: '#00f2fe' }, // Blue gradient
-                        { start: '#43e97b', end: '#38f9d7' }, // Green gradient
-                        { start: '#fa709a', end: '#fee140' }, // Pink-yellow gradient
-                        { start: '#30cfd0', end: '#330867' }, // Teal-purple gradient
-                        { start: '#a8edea', end: '#fed6e3' }, // Light gradient
-                        { start: '#ff9a9e', end: '#fecfef' }  // Soft pink gradient
+                        { start: '#667eea', end: '#764ba2' },
+                        { start: '#f093fb', end: '#f5576c' },
+                        { start: '#4facfe', end: '#00f2fe' },
+                        { start: '#43e97b', end: '#38f9d7' },
+                        { start: '#fa709a', end: '#fee140' },
+                        { start: '#30cfd0', end: '#330867' },
+                        { start: '#a8edea', end: '#fed6e3' },
+                        { start: '#ff9a9e', end: '#fecfef' }
                     ];
-                    
                     const gradient = aestheticGradients[colorIndex % aestheticGradients.length];
                     const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
                     gradientFill.addColorStop(0, gradient.start + '80');
                     gradientFill.addColorStop(1, gradient.end + '10');
-                    
                     const gradientStroke = ctx.createLinearGradient(0, 0, 0, 400);
                     gradientStroke.addColorStop(0, gradient.start);
                     gradientStroke.addColorStop(1, gradient.end);
-
                     datasets.push({
                         label: key,
                         data: starsData,
@@ -743,6 +795,137 @@
                         pointHoverBackgroundColor: '#fff',
                         pointHoverBorderColor: gradient.start
                     });
+                } else if (chartStyle === 'dark') {
+                    const darkColors = [
+                        '#8b5cf6', '#ec4899', '#06b6d4', '#10b981',
+                        '#f59e0b', '#ef4444', '#6366f1', '#14b8a6'
+                    ];
+                    const color = darkColors[colorIndex % darkColors.length];
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: color + '30',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#1a1a2e',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: '#fff'
+                    });
+                } else if (chartStyle === 'minimal') {
+                    const minimalColors = [
+                        '#64748b', '#475569', '#334155', '#1e293b',
+                        '#0f172a', '#94a3b8', '#cbd5e1', '#e2e8f0'
+                    ];
+                    const color = minimalColors[colorIndex % minimalColors.length];
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    });
+                } else if (chartStyle === 'vibrant') {
+                    const vibrantColors = [
+                        '#ff6b6b', '#4ecdc4', '#45b7d1', '#f7b731',
+                        '#ee5a6f', '#00d2d3', '#ff9ff3', '#54a0ff'
+                    ];
+                    const color = vibrantColors[colorIndex % vibrantColors.length];
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: color + '40',
+                        borderWidth: 4,
+                        fill: true,
+                        tension: 0.6,
+                        pointRadius: 5,
+                        pointHoverRadius: 10,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: color,
+                        pointBorderWidth: 3,
+                        pointHoverBorderWidth: 4
+                    });
+                } else if (chartStyle === 'pastel') {
+                    const pastelColors = [
+                        '#ffeaa7', '#fab1a0', '#fd79a8', '#fdcb6e',
+                        '#e17055', '#74b9ff', '#a29bfe', '#fd79a8'
+                    ];
+                    const color = pastelColors[colorIndex % pastelColors.length];
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: color + '60',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.5,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: color,
+                        pointBorderWidth: 2.5,
+                        pointHoverBorderWidth: 3.5
+                    });
+                } else if (chartStyle === 'neon') {
+                    const neonColors = [
+                        '#8a2be2', '#00ffff', '#ff00ff', '#00ff00',
+                        '#ffff00', '#ff1493', '#00bfff', '#ff00ff'
+                    ];
+                    const color = neonColors[colorIndex % neonColors.length];
+                    const neonGlow = ctx.createLinearGradient(0, 0, 0, 400);
+                    neonGlow.addColorStop(0, color + 'CC');
+                    neonGlow.addColorStop(1, color + '20');
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: neonGlow,
+                        borderWidth: 4,
+                        fill: true,
+                        tension: 0.5,
+                        pointRadius: 5,
+                        pointHoverRadius: 10,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#0a0a0a',
+                        pointBorderWidth: 3,
+                        pointHoverBorderWidth: 4,
+                        shadowBlur: 10,
+                        shadowColor: color
+                    });
+                } else if (chartStyle === 'corporate') {
+                    const corporateColors = [
+                        '#1e40af', '#059669', '#dc2626', '#7c3aed',
+                        '#ea580c', '#0891b2', '#be185d', '#475569'
+                    ];
+                    const color = corporateColors[colorIndex % corporateColors.length];
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: color + '10',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.2,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 3
+                    });
                 }
 
                 colorIndex++;
@@ -752,11 +935,16 @@
             updateStats();
 
             // Chart options based on style
+            const getAnimationDuration = (style) => {
+                const longAnimations = ['aesthetic', 'vibrant', 'neon', 'pastel'];
+                return longAnimations.includes(style) ? 2000 : 1000;
+            };
+            
             const baseOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: {
-                    duration: chartStyle === 'aesthetic' ? 2000 : 1000,
+                    duration: getAnimationDuration(chartStyle),
                     easing: 'easeInOutQuart'
                 },
                 interaction: {
@@ -765,6 +953,39 @@
                     intersect: false
                 }
             };
+            
+            // Helper function to get style-specific options
+            const getStyleOptions = (style) => {
+                const isDark = ['dark', 'neon', 'aesthetic'].includes(style);
+                const isLight = ['professional', 'minimal', 'corporate'].includes(style);
+                const isVibrant = style === 'vibrant';
+                const isPastel = style === 'pastel';
+                
+                let textColor, gridColor, tickColor;
+                
+                if (isDark) {
+                    textColor = '#ffffff';
+                    gridColor = 'rgba(255, 255, 255, 0.1)';
+                    tickColor = 'rgba(255, 255, 255, 0.9)';
+                } else if (isVibrant || isPastel) {
+                    textColor = '#ffffff';
+                    gridColor = 'rgba(255, 255, 255, 0.2)';
+                    tickColor = 'rgba(255, 255, 255, 0.95)';
+                } else {
+                    textColor = '#1f2937';
+                    gridColor = 'rgba(0, 0, 0, 0.05)';
+                    tickColor = '#6b7280';
+                }
+                
+                return {
+                    textColor,
+                    gridColor,
+                    tickColor,
+                    isDark: isDark || isVibrant || isPastel
+                };
+            };
+            
+            const styleOpts = getStyleOptions(chartStyle);
 
             if (chartStyle === 'professional') {
                 // Professional chart options
@@ -865,7 +1086,80 @@
                     }
                 });
             } else {
-                // Aesthetic chart options
+                // Create unified chart options for all styles
+                const getChartConfig = (style) => {
+                    const configs = {
+                        aesthetic: {
+                            title: '⭐ GitHub Stars Over Time',
+                            titleSize: 24,
+                            titleWeight: '700',
+                            showEmoji: true,
+                            tooltipBg: 'rgba(255, 255, 255, 0.95)',
+                            tooltipText: '#1f2937',
+                            tooltipBody: '#374151'
+                        },
+                        dark: {
+                            title: '⭐ GitHub Stars Over Time',
+                            titleSize: 22,
+                            titleWeight: '700',
+                            showEmoji: true,
+                            tooltipBg: 'rgba(26, 26, 46, 0.95)',
+                            tooltipText: '#ffffff',
+                            tooltipBody: '#e2e8f0'
+                        },
+                        minimal: {
+                            title: 'GitHub Stars Over Time',
+                            titleSize: 18,
+                            titleWeight: '600',
+                            showEmoji: false,
+                            tooltipBg: 'rgba(255, 255, 255, 0.98)',
+                            tooltipText: '#1f2937',
+                            tooltipBody: '#4a5568'
+                        },
+                        vibrant: {
+                            title: '⭐ GitHub Stars Over Time',
+                            titleSize: 24,
+                            titleWeight: '800',
+                            showEmoji: true,
+                            tooltipBg: 'rgba(255, 255, 255, 0.95)',
+                            tooltipText: '#1f2937',
+                            tooltipBody: '#374151'
+                        },
+                        pastel: {
+                            title: '⭐ GitHub Stars Over Time',
+                            titleSize: 22,
+                            titleWeight: '700',
+                            showEmoji: true,
+                            tooltipBg: 'rgba(255, 255, 255, 0.98)',
+                            tooltipText: '#1f2937',
+                            tooltipBody: '#4a5568'
+                        },
+                        neon: {
+                            title: '⭐ GitHub Stars Over Time',
+                            titleSize: 24,
+                            titleWeight: '800',
+                            showEmoji: true,
+                            tooltipBg: 'rgba(10, 10, 10, 0.95)',
+                            tooltipText: '#ffffff',
+                            tooltipBody: '#e2e8f0'
+                        },
+                        corporate: {
+                            title: 'GitHub Stars Over Time',
+                            titleSize: 20,
+                            titleWeight: '600',
+                            showEmoji: false,
+                            tooltipBg: 'rgba(255, 255, 255, 0.98)',
+                            tooltipText: '#1f2937',
+                            tooltipBody: '#4a5568'
+                        }
+                    };
+                    return configs[style] || configs.aesthetic;
+                };
+                
+                const config = getChartConfig(chartStyle);
+                const emoji = config.showEmoji ? '⭐ ' : '';
+                
+                // Aesthetic and other styles chart options
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -877,13 +1171,13 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: '⭐ GitHub Stars Over Time',
+                                text: config.title,
                                 font: { 
-                                    size: 24,
-                                    weight: '700',
+                                    size: config.titleSize,
+                                    weight: config.titleWeight,
                                     family: "'Segoe UI', sans-serif"
                                 },
-                                color: '#ffffff',
+                                color: styleOpts.textColor,
                                 padding: { bottom: 25 }
                             },
                             legend: {
@@ -895,27 +1189,27 @@
                                     pointStyle: 'circle',
                                     padding: 20,
                                     font: { size: 14, weight: '600' },
-                                    color: '#ffffff',
-                                    textStrokeColor: 'rgba(0, 0, 0, 0.3)',
-                                    textStrokeWidth: 1
+                                    color: styleOpts.textColor,
+                                    textStrokeColor: styleOpts.isDark ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
+                                    textStrokeWidth: styleOpts.isDark ? 1 : 0
                                 }
                             },
                             tooltip: {
                                 mode: 'index',
                                 intersect: false,
-                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                backgroundColor: config.tooltipBg,
                                 padding: 15,
                                 titleFont: { size: 15, weight: '700' },
                                 bodyFont: { size: 14, weight: '500' },
-                                titleColor: '#1f2937',
-                                bodyColor: '#374151',
-                                borderColor: 'rgba(102, 126, 234, 0.3)',
+                                titleColor: config.tooltipText,
+                                bodyColor: config.tooltipBody,
+                                borderColor: styleOpts.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
                                 borderWidth: 2,
                                 displayColors: true,
                                 boxPadding: 8,
                                 callbacks: {
                                     label: function(context) {
-                                        return '⭐ ' + context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' stars';
+                                        return emoji + context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' stars';
                                     }
                                 }
                             }
@@ -925,20 +1219,20 @@
                                 display: true,
                                 grid: {
                                     display: true,
-                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    color: styleOpts.gridColor,
                                     drawBorder: false
                                 },
                                 ticks: {
                                     font: { size: 12, weight: '500' },
-                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    color: styleOpts.tickColor,
                                     maxRotation: 45,
                                     minRotation: 0
                                 },
                                 title: {
                                     display: true,
-                                    text: '📅 Date',
+                                    text: (config.showEmoji ? '📅 ' : '') + 'Date',
                                     font: { size: 14, weight: '600' },
-                                    color: '#ffffff',
+                                    color: styleOpts.textColor,
                                     padding: { top: 15 }
                                 }
                             },
@@ -946,21 +1240,21 @@
                                 display: true,
                                 grid: {
                                     display: true,
-                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    color: styleOpts.gridColor,
                                     drawBorder: false
                                 },
                                 ticks: {
                                     font: { size: 12, weight: '500' },
-                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    color: styleOpts.tickColor,
                                     callback: function(value) {
                                         return value.toLocaleString();
                                     }
                                 },
                                 title: {
                                     display: true,
-                                    text: '⭐ Number of Stars',
+                                    text: (config.showEmoji ? '⭐ ' : '') + 'Number of Stars',
                                     font: { size: 14, weight: '600' },
-                                    color: '#ffffff',
+                                    color: styleOpts.textColor,
                                     padding: { bottom: 15 }
                                 },
                                 beginAtZero: true
