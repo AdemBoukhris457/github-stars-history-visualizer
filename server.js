@@ -209,36 +209,49 @@ function generateChartSVG(timelineData, width = 800, height = 400) {
     });
   });
 
-  // Find min/max values for scaling
+  // Find min/max values for scaling (always start at 0 like the app)
   const allValues = datasets.flatMap(d => d.data);
-  const minValue = Math.min(...allValues);
+  const minValue = 0; // Always start at 0 like the app
   const maxValue = Math.max(...allValues);
   const valueRange = maxValue - minValue || 1;
 
-  // Generate SVG path for each dataset
-  const paths = datasets.map((dataset, index) => {
-    const points = dataset.data.map((value, i) => {
-      const x = padding.left + (i / (sortedDates.length - 1 || 1)) * chartWidth;
+  // Generate SVG path and points for each dataset
+  const chartElements = datasets.map((dataset, index) => {
+    // Calculate coordinates for all points
+    const coordinates = dataset.data.map((value, i) => {
+      const x = padding.left + (i / Math.max(1, sortedDates.length - 1)) * chartWidth;
       const y = padding.top + chartHeight - ((value - minValue) / valueRange) * chartHeight;
-      return `${x},${y}`;
-    }).join(' L');
+      return { x, y, value };
+    });
 
-    return `<polyline
-      points="M ${points}"
+    // Build path string (space-separated for polyline points attribute)
+    const pathPoints = coordinates.map(coord => `${coord.x} ${coord.y}`).join(' ');
+
+    // Generate path element
+    const path = `<polyline
+      points="${pathPoints}"
       fill="none"
       stroke="${dataset.color}"
       stroke-width="2.5"
       stroke-linecap="round"
       stroke-linejoin="round"
     />`;
+
+    // Generate data points (circles) like in the app
+    const points = coordinates.map(coord => 
+      `<circle cx="${coord.x}" cy="${coord.y}" r="3" fill="${dataset.color}" stroke="white" stroke-width="2"/>`
+    ).join('\n      ');
+
+    return path + '\n      ' + points;
   }).join('\n    ');
 
   // Generate grid lines
   const gridLines = [];
-  // Horizontal grid lines
-  for (let i = 0; i <= 5; i++) {
-    const y = padding.top + (i / 5) * chartHeight;
-    const value = maxValue - (i / 5) * valueRange;
+  // Horizontal grid lines (Y-axis starts at 0)
+  const numGridLines = 5;
+  for (let i = 0; i <= numGridLines; i++) {
+    const y = padding.top + chartHeight - (i / numGridLines) * chartHeight;
+    const value = (i / numGridLines) * maxValue;
     gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`);
     gridLines.push(`<text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="#6b7280">${Math.round(value).toLocaleString()}</text>`);
   }
@@ -267,7 +280,9 @@ function generateChartSVG(timelineData, width = 800, height = 400) {
   <rect width="${width}" height="${height}" fill="white"/>
   <text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="600" fill="#1f2937">GitHub Stars Over Time</text>
   ${gridLines.join('\n    ')}
-  ${paths}
+  <g id="chart-lines">
+    ${chartElements}
+  </g>
   <g id="legend">
     ${legendItems}
   </g>
