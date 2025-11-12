@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Stars History Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 30%, #bbe1fa 60%, #0f4c75 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(50, 130, 184, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(187, 225, 250, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(15, 76, 117, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-weight: 400;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.15),
+                0 0 0 1px rgba(255,255,255,0.5);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 25px 70px rgba(0,0,0,0.2),
+                0 0 0 1px rgba(255,255,255,0.6);
+        }
+
+        .card h2 {
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 1.75em;
+            margin-bottom: 24px;
+            letter-spacing: -0.01em;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.01em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            color: #1a202c;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #3282b8;
+            box-shadow: 0 0 0 4px rgba(50, 130, 184, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .input-group input::placeholder {
+            color: #a0aec0;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 50%, #bbe1fa 100%);
+            background-size: 200% 200%;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+            box-shadow: 0 4px 15px rgba(15, 76, 117, 0.4);
+            letter-spacing: 0.01em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(15, 76, 117, 0.5);
+            background-position: right center;
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(15, 76, 117, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .repositories-list {
+            margin-top: 20px;
+        }
+
+        .repo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .repo-item:hover {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .repo-item span {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 15px;
+            letter-spacing: 0.01em;
+        }
+
+        .repo-item button {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+        }
+
+        .repo-item button:hover {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+
+        .repo-item button:active {
+            transform: translateY(0);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #c53030;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #e53e3e;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.15);
+            font-weight: 500;
+        }
+
+        .info {
+            background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+            color: #2c5282;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 4px solid #3182ce;
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.15);
+            font-weight: 500;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            padding: 24px;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 50%, #bbe1fa 100%);
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(15, 76, 117, 0.3);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(15, 76, 117, 0.4);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5em;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .stat-card p {
+            color: rgba(255,255,255,0.95);
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: #3282b8;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #4a5568;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .chart-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .style-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .style-selector label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 15px;
+        }
+
+        .style-selector select {
+            padding: 12px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .style-selector select:focus {
+            outline: none;
+            border-color: #3282b8;
+            box-shadow: 0 0 0 4px rgba(50, 130, 184, 0.1);
+        }
+
+        .style-selector select:hover {
+            border-color: #cbd5e0;
+        }
+
+        .chart-container {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .chart-container.aesthetic {
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 50%, #bbe1fa 100%);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 
+                inset 0 2px 8px rgba(0,0,0,0.1),
+                0 8px 32px rgba(15, 76, 117, 0.3);
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .export-btn:hover {
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+            border-color: #cbd5e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .export-btn.primary {
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 50%, #bbe1fa 100%);
+            background-size: 200% 200%;
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(15, 76, 117, 0.4);
+        }
+
+        .export-btn.primary:hover {
+            box-shadow: 0 6px 20px rgba(15, 76, 117, 0.5);
+            background-position: right center;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⭐ GitHub Stars History</h1>
+            <p>Visualize the growth of stars over time for any GitHub repository</p>
+        </div>
+
+        <div class="card">
+            <h2>Add Repository</h2>
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="owner">Owner/Username</label>
+                    <input type="text" id="owner" placeholder="e.g., facebook" />
+                </div>
+                <div class="input-group">
+                    <label for="repo">Repository Name</label>
+                    <input type="text" id="repo" placeholder="e.g., react" />
+                </div>
+                <button class="btn" onclick="addRepository()">Add Repository</button>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="forceRefresh" />
+                <label for="forceRefresh">Force refresh (ignore cache)</label>
+            </div>
+
+            <div id="repositories" class="repositories-list"></div>
+        </div>
+
+        <div class="card" id="chartCard" style="display: none;">
+            <div class="chart-controls">
+                <h2 style="margin: 0;">Stars History Chart</h2>
+                <div class="style-selector">
+                    <label for="chartStyle">Chart Style:</label>
+                    <select id="chartStyle" onchange="updateChart()">
+                        <option value="professional">Professional</option>
+                        <option value="aesthetic">Aesthetic</option>
+                    </select>
+                </div>
+            </div>
+            <div id="stats" class="stats"></div>
+            <div class="chart-container" id="chartContainer">
+                <canvas id="starsChart"></canvas>
+            </div>
+            <div class="export-buttons">
+                <button class="export-btn primary" onclick="exportChartAsImage()">📥 Download Chart as PNG</button>
+                <button class="export-btn" onclick="generateMarkdown()">📝 Copy Markdown for README</button>
+            </div>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let chart = null;
+        let repositories = [];
+        let chartData = {};
+
+        function addRepository() {
+            const owner = document.getElementById('owner').value.trim();
+            const repo = document.getElementById('repo').value.trim();
+
+            if (!owner || !repo) {
+                showMessage('Please enter both owner and repository name', 'error');
+                return;
+            }
+
+            const repoKey = `${owner}/${repo}`;
+            if (repositories.some(r => r.key === repoKey)) {
+                showMessage('Repository already added', 'error');
+                return;
+            }
+
+            repositories.push({ owner, repo, key: repoKey });
+            updateRepositoriesList();
+            document.getElementById('owner').value = '';
+            document.getElementById('repo').value = '';
+
+            if (repositories.length > 0) {
+                fetchStarsHistory();
+            }
+        }
+
+        function removeRepository(key) {
+            repositories = repositories.filter(r => r.key !== key);
+            delete chartData[key];
+            updateRepositoriesList();
+            updateChart();
+        }
+
+        function updateRepositoriesList() {
+            const container = document.getElementById('repositories');
+            if (repositories.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No repositories added yet</p>';
+                document.getElementById('chartCard').style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = repositories.map(r => `
+                <div class="repo-item">
+                    <span>${r.key}</span>
+                    <button onclick="removeRepository('${r.key}')">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        async function fetchStarsHistory() {
+            const forceRefresh = document.getElementById('forceRefresh').checked;
+            const btn = document.querySelector('.btn');
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            showMessage('Fetching stars history...', 'info');
+
+            try {
+                if (repositories.length === 1) {
+                    // Single repository
+                    const repo = repositories[0];
+                    const response = await fetch('/api/stars-history', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            owner: repo.owner,
+                            repo: repo.repo,
+                            forceRefresh
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    chartData[repo.key] = data;
+                } else {
+                    // Multiple repositories
+                    const response = await fetch('/api/multiple-stars-history', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            repositories: repositories.map(r => ({
+                                owner: r.owner,
+                                repo: r.repo
+                            })),
+                            forceRefresh
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+
+                    result.repositories.forEach(data => {
+                        if (!data.error) {
+                            chartData[`${data.owner}/${data.repo}`] = data;
+                        } else {
+                            showMessage(`Error fetching ${data.owner}/${data.repo}: ${data.error}`, 'error');
+                        }
+                    });
+                }
+
+                updateChart();
+                showMessage('Data loaded successfully!', 'info');
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add Repository';
+            }
+        }
+
+        function updateChart() {
+            const chartCard = document.getElementById('chartCard');
+            if (Object.keys(chartData).length === 0) {
+                chartCard.style.display = 'none';
+                return;
+            }
+
+            chartCard.style.display = 'block';
+            const ctx = document.getElementById('starsChart').getContext('2d');
+            const chartStyle = document.getElementById('chartStyle').value;
+            const chartContainer = document.getElementById('chartContainer');
+
+            // Update container class based on style
+            chartContainer.className = 'chart-container' + (chartStyle === 'aesthetic' ? ' aesthetic' : '');
+
+            // Destroy existing chart
+            if (chart) {
+                chart.destroy();
+            }
+
+            // Prepare datasets
+            const datasets = [];
+            let colorIndex = 0;
+            let allDates = new Set();
+
+            // Collect all dates
+            Object.values(chartData).forEach(data => {
+                if (data.timeline) {
+                    data.timeline.forEach(point => allDates.add(point.date));
+                }
+            });
+
+            const sortedDates = Array.from(allDates).sort();
+
+            // Create datasets for each repository
+            Object.entries(chartData).forEach(([key, data]) => {
+                if (!data.timeline) return;
+
+                const timelineMap = {};
+                data.timeline.forEach(point => {
+                    timelineMap[point.date] = point.stars;
+                });
+
+                const starsData = sortedDates.map(date => {
+                    // Find the last known star count up to this date
+                    let lastCount = 0;
+                    for (let i = 0; i < sortedDates.length; i++) {
+                        if (sortedDates[i] > date) break;
+                        lastCount = timelineMap[sortedDates[i]] || lastCount;
+                    }
+                    return lastCount;
+                });
+
+                if (chartStyle === 'professional') {
+                    // Professional style colors
+                    const professionalColors = [
+                        '#2563eb', // Blue
+                        '#dc2626', // Red
+                        '#16a34a', // Green
+                        '#ca8a04', // Yellow
+                        '#9333ea', // Purple
+                        '#ea580c', // Orange
+                        '#0891b2', // Cyan
+                        '#be185d'  // Pink
+                    ];
+                    const color = professionalColors[colorIndex % professionalColors.length];
+                    
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: color,
+                        backgroundColor: color + '15',
+                        borderWidth: 2.5,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 3,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverBorderWidth: 3,
+                        pointHoverBackgroundColor: '#fff'
+                    });
+                } else {
+                    // Aesthetic style with gradients
+                    const aestheticGradients = [
+                        { start: '#667eea', end: '#764ba2' }, // Purple gradient
+                        { start: '#f093fb', end: '#f5576c' }, // Pink gradient
+                        { start: '#4facfe', end: '#00f2fe' }, // Blue gradient
+                        { start: '#43e97b', end: '#38f9d7' }, // Green gradient
+                        { start: '#fa709a', end: '#fee140' }, // Pink-yellow gradient
+                        { start: '#30cfd0', end: '#330867' }, // Teal-purple gradient
+                        { start: '#a8edea', end: '#fed6e3' }, // Light gradient
+                        { start: '#ff9a9e', end: '#fecfef' }  // Soft pink gradient
+                    ];
+                    
+                    const gradient = aestheticGradients[colorIndex % aestheticGradients.length];
+                    const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradientFill.addColorStop(0, gradient.start + '80');
+                    gradientFill.addColorStop(1, gradient.end + '10');
+                    
+                    const gradientStroke = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradientStroke.addColorStop(0, gradient.start);
+                    gradientStroke.addColorStop(1, gradient.end);
+
+                    datasets.push({
+                        label: key,
+                        data: starsData,
+                        borderColor: gradientStroke,
+                        backgroundColor: gradientFill,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.5,
+                        pointRadius: 4,
+                        pointHoverRadius: 9,
+                        pointBackgroundColor: gradient.start,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2.5,
+                        pointHoverBorderWidth: 3.5,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: gradient.start
+                    });
+                }
+
+                colorIndex++;
+            });
+
+            // Update stats
+            updateStats();
+
+            // Chart options based on style
+            const baseOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: chartStyle === 'aesthetic' ? 2000 : 1000,
+                    easing: 'easeInOutQuart'
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            };
+
+            if (chartStyle === 'professional') {
+                // Professional chart options
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedDates,
+                        datasets: datasets
+                    },
+                    options: {
+                        ...baseOptions,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'GitHub Stars Over Time',
+                                font: { 
+                                    size: 20,
+                                    weight: '600',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#1f2937',
+                                padding: { bottom: 20 }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                align: 'end',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 15,
+                                    font: { size: 13, weight: '500' },
+                                    color: '#374151'
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: { size: 14, weight: '600' },
+                                bodyFont: { size: 13 },
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                displayColors: true,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' stars';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 11 },
+                                    color: '#6b7280',
+                                    maxRotation: 45,
+                                    minRotation: 0
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date',
+                                    font: { size: 13, weight: '600' },
+                                    color: '#374151',
+                                    padding: { top: 10 }
+                                }
+                            },
+                            y: {
+                                display: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(0, 0, 0, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 11 },
+                                    color: '#6b7280',
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Number of Stars',
+                                    font: { size: 13, weight: '600' },
+                                    color: '#374151',
+                                    padding: { bottom: 10 }
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Aesthetic chart options
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedDates,
+                        datasets: datasets
+                    },
+                    options: {
+                        ...baseOptions,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '⭐ GitHub Stars Over Time',
+                                font: { 
+                                    size: 24,
+                                    weight: '700',
+                                    family: "'Segoe UI', sans-serif"
+                                },
+                                color: '#ffffff',
+                                padding: { bottom: 25 }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                align: 'end',
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    padding: 20,
+                                    font: { size: 14, weight: '600' },
+                                    color: '#ffffff',
+                                    textStrokeColor: 'rgba(0, 0, 0, 0.3)',
+                                    textStrokeWidth: 1
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                padding: 15,
+                                titleFont: { size: 15, weight: '700' },
+                                bodyFont: { size: 14, weight: '500' },
+                                titleColor: '#1f2937',
+                                bodyColor: '#374151',
+                                borderColor: 'rgba(102, 126, 234, 0.3)',
+                                borderWidth: 2,
+                                displayColors: true,
+                                boxPadding: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        return '⭐ ' + context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' stars';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 12, weight: '500' },
+                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    maxRotation: 45,
+                                    minRotation: 0
+                                },
+                                title: {
+                                    display: true,
+                                    text: '📅 Date',
+                                    font: { size: 14, weight: '600' },
+                                    color: '#ffffff',
+                                    padding: { top: 15 }
+                                }
+                            },
+                            y: {
+                                display: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 12, weight: '500' },
+                                    color: 'rgba(255, 255, 255, 0.9)',
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: '⭐ Number of Stars',
+                                    font: { size: 14, weight: '600' },
+                                    color: '#ffffff',
+                                    padding: { bottom: 15 }
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateStats() {
+            const statsContainer = document.getElementById('stats');
+            const stats = [];
+
+            Object.entries(chartData).forEach(([key, data]) => {
+                if (data.timeline && data.timeline.length > 0) {
+                    const latest = data.timeline[data.timeline.length - 1];
+                    stats.push({
+                        repo: key,
+                        total: latest.stars,
+                        cached: data.cached
+                    });
+                }
+            });
+
+            statsContainer.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <h3>${stat.total.toLocaleString()}</h3>
+                    <p>${stat.repo}</p>
+                    ${stat.cached ? '<p style="font-size: 0.8em; color: #999;">(cached)</p>' : ''}
+                </div>
+            `).join('');
+        }
+
+        function showMessage(message, type) {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messagesContainer.innerHTML = '';
+            messagesContainer.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Allow Enter key to add repository
+        document.getElementById('repo').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addRepository();
+            }
+        });
+
+        // Export chart as PNG image
+        function exportChartAsImage() {
+            if (!chart) {
+                showMessage('No chart to export', 'error');
+                return;
+            }
+
+            try {
+                const url = chart.toBase64Image('image/png', 1.0);
+                const link = document.createElement('a');
+                link.download = `github-stars-chart-${new Date().toISOString().split('T')[0]}.png`;
+                link.href = url;
+                link.click();
+                showMessage('Chart downloaded successfully!', 'info');
+            } catch (error) {
+                showMessage('Error exporting chart: ' + error.message, 'error');
+            }
+        }
+
+        // Generate markdown for README
+        function generateMarkdown() {
+            if (!chart || Object.keys(chartData).length === 0) {
+                showMessage('No chart data to export', 'error');
+                return;
+            }
+
+            const repoList = Object.keys(chartData);
+            const chartImageUrl = chart.toBase64Image('image/png', 1.0);
+            const base64Data = chartImageUrl.split(',')[1];
+            
+            // Get current date
+            const currentDate = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            // Generate markdown with multiple options
+            const markdown = `## 📊 GitHub Stars History
+
+### Repositories Tracked:
+${repoList.map(repo => `- **${repo}**`).join('\n')}
+
+### Chart
+
+![GitHub Stars History Chart](data:image/png;base64,${base64Data})
+
+---
+
+### Alternative: Upload Image to Repository
+
+If the base64 image doesn't work in your README viewer, you can:
+
+1. **Download the chart** using the "Download Chart as PNG" button above
+2. **Upload the image** to your repository (e.g., in an \`images/\` or \`assets/\` folder)
+3. **Use this markdown** instead:
+
+\`\`\`markdown
+## 📊 GitHub Stars History
+
+### Repositories Tracked:
+${repoList.map(repo => `- **${repo}**`).join('\n')}
+
+![GitHub Stars History Chart](./images/github-stars-chart.png)
+\`\`\`
+
+*Last updated: ${currentDate}*
+
+---
+
+*Generated by [GitHub Stars History Visualizer](https://github.com/yourusername/github-stars-history-visualizer)*`;
+
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(markdown).then(() => {
+                    showMessage('✅ Markdown copied to clipboard! Paste it in your README.md file', 'info');
+                    
+                    // Also log to console for easy access
+                    console.log('=== MARKDOWN FOR README ===');
+                    console.log(markdown);
+                    console.log('==========================');
+                }).catch(() => {
+                    // Fallback method
+                    copyToClipboardFallback(markdown);
+                });
+            } else {
+                // Fallback method for older browsers
+                copyToClipboardFallback(markdown);
+            }
+        }
+
+        // Fallback method to copy to clipboard
+        function copyToClipboardFallback(text) {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                textarea.style.left = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showMessage('✅ Markdown copied to clipboard! Paste it in your README.md file', 'info');
+                
+                // Also log to console
+                console.log('=== MARKDOWN FOR README ===');
+                console.log(text);
+                console.log('==========================');
+            } catch (error) {
+                showMessage('Error copying to clipboard. Check console for markdown code.', 'error');
+                console.log('=== MARKDOWN FOR README ===');
+                console.log(text);
+                console.log('==========================');
+            }
+        }
+
+        // Initialize
+        updateRepositoriesList();
+    </script>
+</body>
+</html>
+
