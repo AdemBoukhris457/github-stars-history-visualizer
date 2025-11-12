@@ -274,18 +274,32 @@ app.post('/api/multiple-stars-history', async (req, res) => {
   }
 });
 
-// Start server
-async function startServer() {
-  await ensureDataDir();
-  
-  // Use environment variable if set, otherwise find available port
-  const port = process.env.PORT ? parseInt(process.env.PORT) : await findAvailablePort(3000);
-  
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-    console.log('Note: Without authentication, rate limit is 60 requests/hour');
-  });
-}
+// Initialize data directory for Vercel (runs when module loads)
+(async () => {
+  try {
+    await ensureDataDir();
+  } catch (error) {
+    console.error('Error initializing data directory:', error);
+  }
+})();
 
-startServer();
+// Export for Vercel serverless functions
+module.exports = app;
+
+// Start server locally (only if not in Vercel environment)
+if (require.main === module) {
+  async function startServer() {
+    await ensureDataDir();
+    
+    // Use environment variable if set, otherwise find available port
+    const port = process.env.PORT ? parseInt(process.env.PORT) : await findAvailablePort(3000);
+    
+    app.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+      console.log('Note: Without authentication, rate limit is 60 requests/hour');
+    });
+  }
+  
+  startServer();
+}
 
