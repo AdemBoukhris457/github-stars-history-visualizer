@@ -1336,35 +1336,28 @@
             }
 
             const repoList = Object.keys(chartData);
-            const chartImageUrl = chart.toBase64Image('image/png', 1.0);
-            const base64Data = chartImageUrl.split(',')[1];
-            
-            // Get current URL for linking (or use default)
             const currentUrl = window.location.origin;
             
-            // Format repository names for the link (first repo or all repos)
-            const firstRepo = repoList[0] || '';
-            const repoParam = repoList.length === 1 
-                ? firstRepo.replace('/', '_')
-                : repoList.map(r => r.replace('/', '_')).join(',');
-            
-            // Generate markdown in the requested format (badge style)
-            // Only the chart badge, no extra instructions
+            // Generate short markdown format similar to star-history.com
+            // Format: [![Star History Chart](image-url)](link-url)
+            // Using shields.io badge for a clean, short format
             let markdown;
             
             if (repoList.length === 1) {
-                // Single repository - use the badge format exactly as requested
-                const repo = firstRepo;
-                markdown = `## Star History
-
-[![Star History Chart](data:image/png;base64,${base64Data})](${currentUrl})`;
+                // Single repository - short format matching star-history.com style
+                const repo = repoList[0];
+                const linkUrl = `${currentUrl}?repo=${encodeURIComponent(repo)}`;
+                // Use shields.io badge - short and clean
+                const imageUrl = `https://img.shields.io/badge/Star_History-View_Chart-blue?style=flat-square`;
+                
+                markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
             } else {
-                // Multiple repositories - create one for each
-                markdown = `## Star History
-
-${repoList.map(repo => {
-                    return `[![Star History Chart - ${repo}](data:image/png;base64,${base64Data})](${currentUrl})`;
-                }).join('\n\n')}`;
+                // Multiple repositories
+                const reposParam = repoList.join(',');
+                const linkUrl = `${currentUrl}?repos=${encodeURIComponent(reposParam)}`;
+                const imageUrl = `https://img.shields.io/badge/Star_History-View_Chart-blue?style=flat-square`;
+                
+                markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
             }
 
             // Copy to clipboard

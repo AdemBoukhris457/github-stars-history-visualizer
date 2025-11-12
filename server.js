@@ -210,6 +210,23 @@ app.post('/api/stars-history', async (req, res) => {
   }
 });
 
+// API endpoint to serve chart image (for markdown badges)
+app.get('/api/chart-image', async (req, res) => {
+  try {
+    const { repos } = req.query;
+    if (!repos) {
+      return res.status(400).json({ error: 'Repos parameter is required' });
+    }
+
+    // For now, return a simple redirect or placeholder
+    // In the future, this could generate and return an actual chart image
+    // For markdown compatibility, redirect to a badge or the app
+    res.redirect(`https://img.shields.io/badge/Star_History-View_Chart-blue?style=flat-square`);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // API endpoint to get multiple repositories
 app.post('/api/multiple-stars-history', async (req, res) => {
   try {
