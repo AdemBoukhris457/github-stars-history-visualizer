@@ -1055,7 +1055,7 @@
                 : repoList.map(r => r.replace('/', '_')).join(',');
             
             // Generate markdown in the requested format (badge style)
-            // For single repository, use the exact format shown
+            // Only the chart badge, no extra instructions
             let markdown;
             
             if (repoList.length === 1) {
@@ -1072,9 +1072,6 @@ ${repoList.map(repo => {
                     return `[![Star History Chart - ${repo}](data:image/png;base64,${base64Data})](${currentUrl})`;
                 }).join('\n\n')}`;
             }
-            
-            // Add alternative format with uploaded image
-            markdown += `\n\n---\n\n### Alternative: Upload Image to Repository\n\nIf the base64 image doesn't work in your README viewer, download the chart and upload it:\n\n\`\`\`markdown\n## Star History\n\n[![Star History Chart](./images/github-stars-chart.png)](${currentUrl})\n\`\`\``;
 
             // Copy to clipboard
             if (navigator.clipboard && navigator.clipboard.writeText) {
