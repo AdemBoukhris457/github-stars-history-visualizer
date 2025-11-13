@@ -892,7 +892,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     </linearGradient>${gradientDefs}`;
 
   // Build SVG with proper encoding and font fallbacks
-  // Use system fonts that are most likely available
+  // Prioritize DejaVu Sans which is commonly available on Linux (Vercel's environment)
   const titleText = styleConfig.showEmoji ? styleConfig.title : styleConfig.title.replace('⭐ ', '');
   const svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -901,7 +901,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     <style type="text/css">
       <![CDATA[
         text { 
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Oxygen, Ubuntu, Cantarell, "DejaVu Sans", "Liberation Sans", Arial, Helvetica, sans-serif;
+          font-family: "DejaVu Sans", "Liberation Sans", "Arial Unicode MS", Arial, Helvetica, sans-serif;
           font-style: normal;
           font-variant: normal;
         }
@@ -1087,32 +1087,12 @@ app.get('/api/chart-image', async (req, res) => {
     // Generate chart SVG with improved font handling
     const svg = generateChartSVG(timelineData, 800, 400, chartStyle);
 
-    // Convert SVG to PNG - use librsvg backend which handles fonts better
-    try {
-      const pngBuffer = await sharp(Buffer.from(svg), {
-        density: 144, // Higher DPI for better text rendering
-        limitInputPixels: false
-      })
-        .resize(800, 400, {
-          fit: 'contain',
-          background: { r: 255, g: 255, b: 255, alpha: 0 }
-        })
-        .png()
-        .toBuffer();
-
-      // Set headers for PNG image
-      res.setHeader('Content-Type', 'image/png');
+    // Return SVG directly - browsers handle font fallbacks much better than Sharp
+    // GitHub markdown supports SVG images and browsers can render fonts properly
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
       res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
       res.setHeader('Access-Control-Allow-Origin', '*'); // Allow cross-origin requests
-      res.send(pngBuffer);
-    } catch (error) {
-      console.error('Error converting SVG to PNG, falling back to SVG:', error);
-      // Fallback to SVG if PNG conversion fails
-      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      res.setHeader('Access-Control-Allow-Origin', '*');
       res.send(svg);
-    }
   } catch (error) {
     console.error('Error generating chart image:', error);
     // Return error image instead of JSON
