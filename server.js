@@ -81,13 +81,22 @@ async function saveCache(owner, repo, data) {
 }
 
 // Fetch all stargazers from GitHub API
-async function fetchStargazers(owner, repo) {
+async function fetchStargazers(owner, repo, accessToken = null) {
   const stargazers = [];
   let page = 1;
   let hasMore = true;
 
   while (hasMore) {
     try {
+      const headers = {
+        'Accept': 'application/vnd.github.v3.star+json'
+      };
+      
+      // Add authorization header if access token is provided
+      if (accessToken) {
+        headers['Authorization'] = `token ${accessToken}`;
+      }
+
       const response = await axios.get(
         `https://api.github.com/repos/${owner}/${repo}/stargazers`,
         {
@@ -95,9 +104,7 @@ async function fetchStargazers(owner, repo) {
             page: page,
             per_page: 100
           },
-          headers: {
-            'Accept': 'application/vnd.github.v3.star+json'
-          }
+          headers: headers
         }
       );
 
@@ -364,7 +371,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
 // API endpoint to get stars history
 app.post('/api/stars-history', async (req, res) => {
   try {
-    const { owner, repo, forceRefresh } = req.body;
+    const { owner, repo, forceRefresh, accessToken } = req.body;
 
     if (!owner || !repo) {
       return res.status(400).json({ error: 'Owner and repo are required' });
@@ -387,7 +394,7 @@ app.post('/api/stars-history', async (req, res) => {
 
     // Fetch fresh data
     console.log(`Fetching stargazers for ${owner}/${repo}...`);
-    const stargazers = await fetchStargazers(owner, repo);
+    const stargazers = await fetchStargazers(owner, repo, accessToken);
     const timeline = buildStarsHistory(stargazers);
 
     const result = {
@@ -460,6 +467,7 @@ app.get('/api/chart-image', async (req, res) => {
         } else {
           // Fetch fresh data if cache is old or missing
           console.log(`Fetching fresh data for ${repo.owner}/${repo.repo}...`);
+          // Note: chart-image endpoint doesn't support access tokens for security reasons
           const stargazers = await fetchStargazers(repo.owner, repo.repo);
           const timeline = buildStarsHistory(stargazers);
 
@@ -556,7 +564,7 @@ app.get('/api/chart-image', async (req, res) => {
 // API endpoint to get multiple repositories
 app.post('/api/multiple-stars-history', async (req, res) => {
   try {
-    const { repositories, forceRefresh } = req.body;
+    const { repositories, forceRefresh, accessToken } = req.body;
 
     if (!repositories || !Array.isArray(repositories)) {
       return res.status(400).json({ error: 'Repositories array is required' });
@@ -590,7 +598,7 @@ app.post('/api/multiple-stars-history', async (req, res) => {
 
         // Fetch fresh data
         console.log(`Fetching stargazers for ${owner}/${repoName}...`);
-        const stargazers = await fetchStargazers(owner, repoName);
+        const stargazers = await fetchStargazers(owner, repoName, accessToken);
         const timeline = buildStarsHistory(stargazers);
 
         const result = {

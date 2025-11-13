@@ -504,17 +504,39 @@
         </div>
 
         <div class="card">
+            <h2>Add Access Token (Optional)</h2>
+            <div class="input-section">
+                <div class="input-group" style="flex: 1;">
+                    <label for="accessToken">GitHub Access Token</label>
+                    <input type="password" id="accessToken" placeholder="ghp_xxxxxxxxxxxx" />
+                </div>
+                <button class="btn" onclick="saveAccessToken()" style="align-self: flex-end;">Save Token</button>
+            </div>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                Adding a token increases rate limits from 60 to 5,000 requests/hour. 
+                <a href="https://github.com/settings/tokens" target="_blank" style="color: #3282b8;">Create token here</a>
+            </p>
+            <div id="tokenStatus" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="card">
             <h2>Add Repository</h2>
             <div class="input-section">
-                <div class="input-group">
+                <div class="input-group" style="flex: 2;">
+                    <label for="repoInput">Repository (owner/repo format)</label>
+                    <input type="text" id="repoInput" placeholder="e.g., facebook/react" />
+                </div>
+                <button class="btn" onclick="addRepository()">Add Repository</button>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                <div class="input-group" style="flex: 1; min-width: 150px;">
                     <label for="owner">Owner/Username</label>
                     <input type="text" id="owner" placeholder="e.g., facebook" />
                 </div>
-                <div class="input-group">
+                <div class="input-group" style="flex: 1; min-width: 150px;">
                     <label for="repo">Repository Name</label>
                     <input type="text" id="repo" placeholder="e.g., react" />
                 </div>
-                <button class="btn" onclick="addRepository()">Add Repository</button>
             </div>
             <div class="checkbox-group">
                 <input type="checkbox" id="forceRefresh" />
@@ -522,6 +544,9 @@
             </div>
 
             <div id="repositories" class="repositories-list"></div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button class="btn" onclick="clearAllRepositories()" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); display: none;" id="clearAllBtn">Clear All</button>
+            </div>
         </div>
 
         <div class="card" id="chartCard" style="display: none;">
@@ -558,10 +583,95 @@
         let chart = null;
         let repositories = [];
         let chartData = {};
+        let accessToken = null;
+
+        // Load access token from localStorage on page load
+        function loadAccessToken() {
+            const savedToken = localStorage.getItem('github_access_token');
+            if (savedToken) {
+                accessToken = savedToken;
+                document.getElementById('accessToken').value = savedToken;
+                updateTokenStatus(true);
+            }
+        }
+
+        // Save access token to localStorage
+        function saveAccessToken() {
+            const token = document.getElementById('accessToken').value.trim();
+            if (token) {
+                accessToken = token;
+                localStorage.setItem('github_access_token', token);
+                updateTokenStatus(true);
+                showMessage('Access token saved successfully!', 'info');
+            } else {
+                // Clear token
+                accessToken = null;
+                localStorage.removeItem('github_access_token');
+                updateTokenStatus(false);
+                showMessage('Access token cleared', 'info');
+            }
+        }
+
+        // Update token status display
+        function updateTokenStatus(hasToken) {
+            const statusDiv = document.getElementById('tokenStatus');
+            if (hasToken) {
+                statusDiv.innerHTML = '<span style="color: #16a34a; font-weight: 600;">✓ Token saved</span>';
+            } else {
+                statusDiv.innerHTML = '<span style="color: #999;">No token saved</span>';
+            }
+        }
+
+        // Clear all repositories
+        function clearAllRepositories() {
+            if (repositories.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear all repositories?')) {
+                repositories = [];
+                chartData = {};
+                updateRepositoriesList();
+                updateChart();
+                showMessage('All repositories cleared', 'info');
+                // Update URL
+                updateURL();
+            }
+        }
+
+        // Parse repository input (supports "owner/repo" format)
+        function parseRepositoryInput(input) {
+            input = input.trim();
+            if (!input) return null;
+
+            // Check if it's in "owner/repo" format
+            if (input.includes('/')) {
+                const parts = input.split('/').map(p => p.trim());
+                if (parts.length === 2 && parts[0] && parts[1]) {
+                    return { owner: parts[0], repo: parts[1] };
+                }
+            }
+
+            return null;
+        }
 
         function addRepository() {
-            const owner = document.getElementById('owner').value.trim();
-            const repo = document.getElementById('repo').value.trim();
+            // Try to parse from repoInput first
+            const repoInput = document.getElementById('repoInput').value.trim();
+            let owner, repo;
+
+            if (repoInput) {
+                const parsed = parseRepositoryInput(repoInput);
+                if (parsed) {
+                    owner = parsed.owner;
+                    repo = parsed.repo;
+                } else {
+                    showMessage('Invalid format. Use "owner/repo" (e.g., facebook/react)', 'error');
+                    return;
+                }
+            } else {
+                // Fall back to separate fields
+                owner = document.getElementById('owner').value.trim();
+                repo = document.getElementById('repo').value.trim();
+            }
 
             if (!owner || !repo) {
                 showMessage('Please enter both owner and repository name', 'error');
@@ -578,6 +688,10 @@
             updateRepositoriesList();
             document.getElementById('owner').value = '';
             document.getElementById('repo').value = '';
+            document.getElementById('repoInput').value = '';
+
+            // Update URL
+            updateURL();
 
             if (repositories.length > 0) {
                 fetchStarsHistory();
@@ -589,16 +703,76 @@
             delete chartData[key];
             updateRepositoriesList();
             updateChart();
+            // Update URL
+            updateURL();
+        }
+
+        // Update URL with current repositories
+        function updateURL() {
+            if (repositories.length === 0) {
+                window.history.replaceState({}, '', window.location.pathname);
+                return;
+            }
+
+            const params = new URLSearchParams();
+            if (repositories.length === 1) {
+                params.set('repo', repositories[0].key);
+            } else {
+                params.set('repos', repositories.map(r => r.key).join(','));
+            }
+            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+        }
+
+        // Load repositories from URL parameters
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const repoParam = params.get('repo');
+            const reposParam = params.get('repos');
+
+            if (repoParam) {
+                const parsed = parseRepositoryInput(repoParam);
+                if (parsed) {
+                    repositories.push({ 
+                        owner: parsed.owner, 
+                        repo: parsed.repo, 
+                        key: `${parsed.owner}/${parsed.repo}` 
+                    });
+                }
+            } else if (reposParam) {
+                const repoList = reposParam.split(',').map(r => r.trim());
+                repoList.forEach(repoStr => {
+                    const parsed = parseRepositoryInput(repoStr);
+                    if (parsed) {
+                        const key = `${parsed.owner}/${parsed.repo}`;
+                        if (!repositories.some(r => r.key === key)) {
+                            repositories.push({ 
+                                owner: parsed.owner, 
+                                repo: parsed.repo, 
+                                key: key 
+                            });
+                        }
+                    }
+                });
+            }
+
+            if (repositories.length > 0) {
+                updateRepositoriesList();
+                fetchStarsHistory();
+            }
         }
 
         function updateRepositoriesList() {
             const container = document.getElementById('repositories');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            
             if (repositories.length === 0) {
                 container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No repositories added yet</p>';
                 document.getElementById('chartCard').style.display = 'none';
+                clearAllBtn.style.display = 'none';
                 return;
             }
 
+            clearAllBtn.style.display = 'block';
             container.innerHTML = repositories.map(r => `
                 <div class="repo-item">
                     <span>${r.key}</span>
@@ -625,7 +799,8 @@
                         body: JSON.stringify({
                             owner: repo.owner,
                             repo: repo.repo,
-                            forceRefresh
+                            forceRefresh,
+                            accessToken: accessToken
                         })
                     });
 
@@ -645,7 +820,8 @@
                                 owner: r.owner,
                                 repo: r.repo
                             })),
-                            forceRefresh
+                            forceRefresh,
+                            accessToken: accessToken
                         })
                     });
 
@@ -1309,6 +1485,18 @@
             }
         });
 
+        document.getElementById('repoInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addRepository();
+            }
+        });
+
+        document.getElementById('accessToken').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveAccessToken();
+            }
+        });
+
         // Export chart as PNG image
         function exportChartAsImage() {
             if (!chart) {
@@ -1405,7 +1593,13 @@
         }
 
         // Initialize
-        updateRepositoriesList();
+        loadAccessToken();
+        // Load from URL first (which will call updateRepositoriesList if needed)
+        loadFromURL();
+        // If no URL params, show empty state
+        if (repositories.length === 0) {
+            updateRepositoriesList();
+        }
     </script>
 </body>
 </html>
