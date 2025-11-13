@@ -23,7 +23,8 @@
     "express": "^4.18.2",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
-    "sharp": "^0.33.0"
+    "sharp": "^0.33.0",
+    "chartjs-node-canvas": "^4.1.6"
   }
 }
 

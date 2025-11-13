@@ -5,6 +5,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const net = require('net');
 const sharp = require('sharp');
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
 const app = express();
 
@@ -205,6 +206,322 @@ function createSmoothPath(coordinates, tension = 0.1) {
   }
 
   return path;
+}
+
+// Generate chart using Canvas (Chart.js) - matches frontend exactly
+async function generateChartCanvas(timelineData, width = 800, height = 400, style = 'professional') {
+  // Prepare data - same logic as frontend
+  const allDates = new Set();
+  timelineData.forEach(data => {
+    if (data.timeline) {
+      data.timeline.forEach(point => allDates.add(point.date));
+    }
+  });
+
+  const sortedDates = Array.from(allDates).sort();
+  
+  // Get style config
+  const styleConfig = getStyleConfig(style);
+  
+  // Process datasets - same as frontend
+  const datasets = [];
+  let colorIndex = 0;
+
+  timelineData.forEach((data) => {
+    if (!data.timeline) return;
+
+    const timelineMap = {};
+    data.timeline.forEach(point => {
+      timelineMap[point.date] = point.stars;
+    });
+
+    const starsData = sortedDates.map(date => {
+      let lastCount = 0;
+      for (let i = 0; i < sortedDates.length; i++) {
+        if (sortedDates[i] > date) break;
+        lastCount = timelineMap[sortedDates[i]] || lastCount;
+      }
+      return lastCount;
+    });
+
+    const key = `${data.owner}/${data.repo}`;
+    
+    // Apply style-specific dataset configuration
+    if (style === 'professional') {
+      const professionalColors = [
+        '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
+        '#9333ea', '#ea580c', '#0891b2', '#be185d'
+      ];
+      const color = professionalColors[colorIndex % professionalColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + '15',
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.1,
+        pointRadius: 3,
+        pointHoverRadius: 7,
+        pointBackgroundColor: color,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      });
+    } else if (style === 'aesthetic') {
+      const aestheticGradients = [
+        { start: '#667eea', end: '#764ba2' },
+        { start: '#f093fb', end: '#f5576c' },
+        { start: '#4facfe', end: '#00f2fe' },
+        { start: '#43e97b', end: '#38f9d7' },
+        { start: '#fa709a', end: '#fee140' },
+        { start: '#30cfd0', end: '#330867' },
+        { start: '#a8edea', end: '#fed6e3' },
+        { start: '#ff9a9e', end: '#fecfef' }
+      ];
+      const gradient = aestheticGradients[colorIndex % aestheticGradients.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: gradient.start,
+        backgroundColor: gradient.start + '80',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.5,
+        pointRadius: 4,
+        pointHoverRadius: 9,
+        pointBackgroundColor: gradient.start,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2.5
+      });
+    } else if (style === 'dark') {
+      const darkColors = [
+        '#8b5cf6', '#ec4899', '#06b6d4', '#10b981',
+        '#f59e0b', '#ef4444', '#6366f1', '#14b8a6'
+      ];
+      const color = darkColors[colorIndex % darkColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + '30',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 8,
+        pointBackgroundColor: color,
+        pointBorderColor: '#1a1a2e',
+        pointBorderWidth: 2
+      });
+    } else if (style === 'minimal') {
+      const minimalColors = [
+        '#64748b', '#475569', '#334155', '#1e293b',
+        '#0f172a', '#94a3b8', '#cbd5e1', '#e2e8f0'
+      ];
+      const color = minimalColors[colorIndex % minimalColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        fill: false,
+        tension: 0,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointBackgroundColor: color,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      });
+    } else if (style === 'vibrant') {
+      const vibrantColors = [
+        '#ff6b6b', '#4ecdc4', '#45b7d1', '#f7b731',
+        '#ee5a6f', '#00d2d3', '#ff9ff3', '#54a0ff'
+      ];
+      const color = vibrantColors[colorIndex % vibrantColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + '40',
+        borderWidth: 4,
+        fill: true,
+        tension: 0.6,
+        pointRadius: 5,
+        pointHoverRadius: 10,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: color,
+        pointBorderWidth: 3
+      });
+    } else if (style === 'pastel') {
+      const pastelColors = [
+        '#ffeaa7', '#fab1a0', '#fd79a8', '#fdcb6e',
+        '#e17055', '#74b9ff', '#a29bfe', '#fd79a8'
+      ];
+      const color = pastelColors[colorIndex % pastelColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + '60',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.5,
+        pointRadius: 4,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: color,
+        pointBorderWidth: 2.5
+      });
+    } else if (style === 'neon') {
+      const neonColors = [
+        '#8a2be2', '#00ffff', '#ff00ff', '#00ff00',
+        '#ffff00', '#ff1493', '#00bfff', '#ff00ff'
+      ];
+      const color = neonColors[colorIndex % neonColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + 'CC',
+        borderWidth: 4,
+        fill: true,
+        tension: 0.5,
+        pointRadius: 5,
+        pointHoverRadius: 10,
+        pointBackgroundColor: color,
+        pointBorderColor: '#0a0a0a',
+        pointBorderWidth: 3
+      });
+    } else if (style === 'corporate') {
+      const corporateColors = [
+        '#1e40af', '#059669', '#dc2626', '#7c3aed',
+        '#ea580c', '#0891b2', '#be185d', '#475569'
+      ];
+      const color = corporateColors[colorIndex % corporateColors.length];
+      datasets.push({
+        label: key,
+        data: starsData,
+        borderColor: color,
+        backgroundColor: color + '10',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.2,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        pointBackgroundColor: color,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      });
+    }
+
+    colorIndex++;
+  });
+
+  // Create Chart.js configuration - matching frontend
+  const config = {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: styleConfig.showEmoji ? styleConfig.title : styleConfig.title.replace('⭐ ', ''),
+          font: {
+            size: styleConfig.titleSize,
+            weight: styleConfig.titleWeight,
+            family: 'Arial'
+          },
+          color: styleConfig.textColor,
+          padding: { bottom: 25 }
+        },
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 20,
+            font: { size: 14, weight: '600', family: 'Arial' },
+            color: styleConfig.legendTextColor
+          }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        x: {
+          display: true,
+          grid: {
+            display: true,
+            color: styleConfig.gridColor,
+            drawBorder: false
+          },
+          ticks: {
+            font: { size: 12, weight: '500', family: 'Arial' },
+            color: styleConfig.tickColor,
+            maxRotation: 45,
+            minRotation: 0
+          },
+          title: {
+            display: true,
+            text: (styleConfig.showEmoji ? '📅 ' : '') + 'Date',
+            font: { size: 14, weight: '600', family: 'Arial' },
+            color: styleConfig.textColor,
+            padding: { top: 15 }
+          }
+        },
+        y: {
+          display: true,
+          grid: {
+            display: true,
+            color: styleConfig.gridColor,
+            drawBorder: false
+          },
+          ticks: {
+            font: { size: 12, weight: '500', family: 'Arial' },
+            color: styleConfig.tickColor,
+            callback: function(value) {
+              return value.toLocaleString();
+            }
+          },
+          title: {
+            display: true,
+            text: (styleConfig.showEmoji ? '⭐ ' : '') + 'Number of Stars',
+            font: { size: 14, weight: '600', family: 'Arial' },
+            color: styleConfig.textColor,
+            padding: { bottom: 15 }
+          },
+          beginAtZero: true
+        }
+      }
+    },
+    plugins: []
+  };
+
+  // Create canvas renderer with background color
+  // For gradients, use the middle color or first color
+  const bgColor = styleConfig.bgGradient.length >= 2 
+    ? styleConfig.bgGradient[Math.floor(styleConfig.bgGradient.length / 2)]
+    : styleConfig.bgGradient[0];
+  
+  const chartJSNodeCanvas = new ChartJSNodeCanvas({
+    width: width,
+    height: height,
+    backgroundColour: bgColor
+  });
+
+  // Render chart to buffer
+  const imageBuffer = await chartJSNodeCanvas.renderToBuffer(config);
+  return imageBuffer;
 }
 
 // Get style configuration
@@ -740,16 +1057,9 @@ app.get('/api/chart-image', async (req, res) => {
       }
     }
 
-    // Generate chart SVG with the specified style
-    const svg = generateChartSVG(timelineData, 800, 400, chartStyle);
-
-    // Convert SVG to PNG for better GitHub markdown compatibility
-    // GitHub doesn't always render external SVG images for security reasons
+    // Generate chart using Canvas (Chart.js) - matches frontend exactly
     try {
-      const pngBuffer = await sharp(Buffer.from(svg))
-        .resize(800, 400)
-        .png()
-        .toBuffer();
+      const pngBuffer = await generateChartCanvas(timelineData, 800, 400, chartStyle);
 
       // Set headers for PNG image
       res.setHeader('Content-Type', 'image/png');
@@ -757,12 +1067,24 @@ app.get('/api/chart-image', async (req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*'); // Allow cross-origin requests
       res.send(pngBuffer);
     } catch (error) {
-      console.error('Error converting SVG to PNG, falling back to SVG:', error);
-      // Fallback to SVG if PNG conversion fails
-      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.send(svg);
+      console.error('Error generating chart with Canvas, falling back to SVG:', error);
+      // Fallback to SVG if canvas generation fails
+      const svg = generateChartSVG(timelineData, 800, 400, chartStyle);
+      try {
+        const pngBuffer = await sharp(Buffer.from(svg))
+          .resize(800, 400)
+          .png()
+          .toBuffer();
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.send(pngBuffer);
+      } catch (svgError) {
+        res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.send(svg);
+      }
     }
   } catch (error) {
     console.error('Error generating chart image:', error);
