@@ -163,6 +163,17 @@ function buildStarsHistory(stargazers) {
   return timeline;
 }
 
+// Generate error SVG image
+function generateErrorSVG(message, width = 800, height = 400) {
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="${width}" height="${height}" fill="#fef2f2"/>
+  <text x="${width / 2}" y="${height / 2 - 20}" text-anchor="middle" font-size="18" font-weight="600" fill="#dc2626">Error Loading Chart</text>
+  <text x="${width / 2}" y="${height / 2 + 20}" text-anchor="middle" font-size="14" fill="#991b1b">${message}</text>
+</svg>`;
+  return svg;
+}
+
 // Generate SVG chart from timeline data (no native dependencies needed)
 function generateChartSVG(timelineData, width = 800, height = 400) {
   // Prepare data
@@ -345,7 +356,23 @@ app.get('/api/chart-image', async (req, res) => {
   try {
     const { repos } = req.query;
     if (!repos) {
-      return res.status(400).json({ error: 'Repos parameter is required' });
+      // Return error image instead of JSON
+      const errorSvg = generateErrorSVG('Repos parameter is required');
+      try {
+        const pngBuffer = await sharp(Buffer.from(errorSvg))
+          .resize(800, 400)
+          .png()
+          .toBuffer();
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(pngBuffer);
+      } catch (error) {
+        res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(errorSvg);
+      }
     }
 
     // Parse repositories (can be single repo or comma-separated)
@@ -403,7 +430,23 @@ app.get('/api/chart-image', async (req, res) => {
     }
 
     if (timelineData.length === 0) {
-      return res.status(404).json({ error: 'No valid repository data found' });
+      // Return error image instead of JSON
+      const errorSvg = generateErrorSVG('No valid repository data found');
+      try {
+        const pngBuffer = await sharp(Buffer.from(errorSvg))
+          .resize(800, 400)
+          .png()
+          .toBuffer();
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=300'); // Cache for 5 minutes
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(pngBuffer);
+      } catch (error) {
+        res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.send(errorSvg);
+      }
     }
 
     // Generate chart SVG (no native dependencies needed)
@@ -432,7 +475,23 @@ app.get('/api/chart-image', async (req, res) => {
     }
   } catch (error) {
     console.error('Error generating chart image:', error);
-    res.status(500).json({ error: error.message });
+    // Return error image instead of JSON
+    const errorSvg = generateErrorSVG(error.message || 'Unknown error occurred');
+    try {
+      const pngBuffer = await sharp(Buffer.from(errorSvg))
+        .resize(800, 400)
+        .png()
+        .toBuffer();
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.send(pngBuffer);
+    } catch (pngError) {
+      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.send(errorSvg);
+    }
   }
 });
 
