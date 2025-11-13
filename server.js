@@ -500,7 +500,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     // Generate data points
     let points = '';
     if (styleConfig.pointRadius > 0) {
-      const pointStep = Math.max(1, Math.floor(coordinates.length / 20));
+    const pointStep = Math.max(1, Math.floor(coordinates.length / 20));
       const pointCoords = coordinates
         .filter((_, i) => i % pointStep === 0 || i === coordinates.length - 1);
       
@@ -522,7 +522,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     const y = padding.top + chartHeight - (i / numGridLines) * chartHeight;
     const value = (i / numGridLines) * maxValue;
     gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${styleConfig.gridColor}" stroke-width="1"/>`);
-    gridLines.push(`<text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.tickColor}">${Math.round(value).toLocaleString()}</text>`);
+    gridLines.push(`<text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" font-family="Arial, Helvetica, sans-serif" fill="${styleConfig.tickColor}">${Math.round(value).toLocaleString()}</text>`);
   }
 
   // Vertical grid lines (X-axis dates)
@@ -532,7 +532,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     const date = sortedDates[i];
     const dateLabel = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="${styleConfig.gridColor}" stroke-width="1"/>`);
-    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 25}" text-anchor="middle" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.tickColor}" transform="rotate(-45 ${x} ${height - padding.bottom + 25})">${dateLabel}</text>`);
+    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 25}" text-anchor="middle" font-size="11" font-family="Arial, Helvetica, sans-serif" fill="${styleConfig.tickColor}" transform="rotate(-45 ${x} ${height - padding.bottom + 25})">${dateLabel}</text>`);
   }
 
   // Generate legend
@@ -547,7 +547,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
       ? dataset.gradient.start 
       : (typeof dataset.color === 'string' ? dataset.color : dataset.color.start);
     legendItems.push(`<circle cx="${x}" cy="${y}" r="5" fill="${legendColor}"/>
-      <text x="${x + 15}" y="${y + 5}" font-size="13" font-weight="500" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.legendTextColor}">${dataset.label}</text>`);
+      <text x="${x + 15}" y="${y + 5}" font-size="13" font-weight="500" font-family="Arial, Helvetica, sans-serif" fill="${styleConfig.legendTextColor}">${dataset.label}</text>`);
   });
 
   // Background gradient
@@ -569,7 +569,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   <rect width="${width}" height="${height}" fill="none" stroke="${styleConfig.bgStroke}" stroke-width="1"/>
   
   <!-- Title -->
-  <text x="${width / 2}" y="35" text-anchor="middle" font-size="${styleConfig.titleSize}" font-weight="${styleConfig.titleWeight}" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.textColor}">${titleText}</text>
+  <text x="${width / 2}" y="35" text-anchor="middle" font-size="${styleConfig.titleSize}" font-weight="${styleConfig.titleWeight}" font-family="Arial, Helvetica, sans-serif" fill="${styleConfig.textColor}">${titleText}</text>
   
   <!-- Grid lines -->
   ${gridLines.join('\n  ')}
@@ -585,8 +585,8 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   </g>
   
   <!-- Axis labels -->
-  <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.textColor}">${styleConfig.showEmoji ? '📅 ' : ''}Date</text>
-  <text x="20" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.textColor}" transform="rotate(-90 20 ${height / 2})">${styleConfig.showEmoji ? '⭐ ' : ''}Number of Stars</text>
+  <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-size="13" font-weight="600" font-family="Arial, Helvetica, sans-serif" fill="${styleConfig.textColor}">${styleConfig.showEmoji ? '📅 ' : ''}Date</text>
+  <text x="20" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" font-family="Arial, Helvetica, sans-serif" fill="${styleConfig.textColor}" transform="rotate(-90 20 ${height / 2})">${styleConfig.showEmoji ? '⭐ ' : ''}Number of Stars</text>
 </svg>`;
 
   return svg;
