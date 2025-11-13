@@ -724,8 +724,9 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   const sortedDates = Array.from(allDates).sort();
   const styleConfig = getStyleConfig(style);
   
-  // Calculate chart dimensions
-  const padding = { top: 80, right: 60, bottom: 80, left: 90 };
+  // Calculate chart dimensions - matching Chart.js default spacing
+  // Chart.js uses: title padding bottom 20, legend padding 15, axis title padding 10
+  const padding = { top: 70, right: 50, bottom: 70, left: 80 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
@@ -846,39 +847,39 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     return (fillArea ? fillArea + '\n      ' : '') + path + (points ? '\n      ' + points : '');
   }).join('\n    ');
 
-  // Generate grid lines
+  // Generate grid lines - matching Chart.js tick font size 11
   const gridLines = [];
   const numGridLines = 5;
   for (let i = 0; i <= numGridLines; i++) {
     const y = padding.top + chartHeight - (i / numGridLines) * chartHeight;
     const value = (i / numGridLines) * maxValue;
     gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${styleConfig.gridColor}" stroke-width="1"/>`);
-    gridLines.push(`<text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" fill="${styleConfig.tickColor}">${escapeXml(Math.round(value).toLocaleString())}</text>`);
+    gridLines.push(`<text x="${padding.left - 12}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="400" fill="${styleConfig.tickColor}">${escapeXml(Math.round(value).toLocaleString())}</text>`);
   }
 
-  // Vertical grid lines (X-axis dates)
+  // Vertical grid lines (X-axis dates) - matching Chart.js tick font size 11
   const dateStep = Math.max(1, Math.floor(sortedDates.length / 8));
   for (let i = 0; i < sortedDates.length; i += dateStep) {
     const x = padding.left + (i / (sortedDates.length - 1 || 1)) * chartWidth;
     const date = sortedDates[i];
     const dateLabel = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="${styleConfig.gridColor}" stroke-width="1"/>`);
-    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 25}" text-anchor="middle" font-size="11" fill="${styleConfig.tickColor}" transform="rotate(-45 ${x} ${height - padding.bottom + 25})">${escapeXml(dateLabel)}</text>`);
+    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 20}" text-anchor="middle" font-size="11" font-weight="400" fill="${styleConfig.tickColor}" transform="rotate(-45 ${x} ${height - padding.bottom + 20})">${escapeXml(dateLabel)}</text>`);
   }
 
-  // Generate legend
+  // Generate legend - matching Chart.js: padding 15, font size 13, weight 500
   const legendItems = [];
   datasets.forEach((dataset, index) => {
     const itemsPerRow = Math.min(2, datasets.length);
     const row = Math.floor(index / itemsPerRow);
     const col = index % itemsPerRow;
     const x = width - padding.right - 180 + col * 90;
-    const y = 35 + row * 25;
+    const y = 30 + row * 28; // Adjusted spacing to match Chart.js padding 15
     const legendColor = style === 'aesthetic' && dataset.gradient 
       ? dataset.gradient.start 
       : (typeof dataset.color === 'string' ? dataset.color : dataset.color.start);
     legendItems.push(`<circle cx="${x}" cy="${y}" r="5" fill="${legendColor}"/>
-      <text x="${x + 15}" y="${y + 5}" font-size="13" font-weight="500" fill="${styleConfig.legendTextColor}">${escapeXml(dataset.label)}</text>`);
+      <text x="${x + 15}" y="${y + 4}" font-size="13" font-weight="500" fill="${styleConfig.legendTextColor}">${escapeXml(dataset.label)}</text>`);
   });
 
   // Background gradient
@@ -891,6 +892,7 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     </linearGradient>${gradientDefs}`;
 
   // Build SVG with proper encoding and font fallbacks
+  // Use system fonts that are most likely available
   const titleText = styleConfig.showEmoji ? styleConfig.title : styleConfig.title.replace('⭐ ', '');
   const svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -898,7 +900,11 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   <defs>
     <style type="text/css">
       <![CDATA[
-        text { font-family: Arial, Helvetica, "Liberation Sans", "DejaVu Sans", sans-serif; }
+        text { 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Oxygen, Ubuntu, Cantarell, "DejaVu Sans", "Liberation Sans", Arial, Helvetica, sans-serif;
+          font-style: normal;
+          font-variant: normal;
+        }
       ]]>
     </style>
     ${bgGradientContent}
@@ -906,8 +912,8 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   <rect width="${width}" height="${height}" fill="url(#${bgGradientId})"/>
   <rect width="${width}" height="${height}" fill="none" stroke="${styleConfig.bgStroke}" stroke-width="1"/>
   
-  <!-- Title -->
-  <text x="${width / 2}" y="35" text-anchor="middle" font-size="${styleConfig.titleSize}" font-weight="${styleConfig.titleWeight}" fill="${styleConfig.textColor}">${escapeXml(titleText)}</text>
+  <!-- Title - matching Chart.js: size 20, weight 600, padding bottom 20 -->
+  <text x="${width / 2}" y="32" text-anchor="middle" font-size="${styleConfig.titleSize}" font-weight="${styleConfig.titleWeight}" fill="${styleConfig.textColor}">${escapeXml(titleText)}</text>
   
   <!-- Grid lines -->
   ${gridLines.join('\n  ')}
@@ -922,9 +928,9 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     ${legendItems.join('\n    ')}
   </g>
   
-  <!-- Axis labels -->
-  <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-size="13" font-weight="600" fill="${styleConfig.textColor}">${escapeXml(styleConfig.showEmoji ? '📅 ' : '')}Date</text>
-  <text x="20" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" fill="${styleConfig.textColor}" transform="rotate(-90 20 ${height / 2})">${escapeXml(styleConfig.showEmoji ? '⭐ ' : '')}Number of Stars</text>
+  <!-- Axis labels - matching Chart.js: size 13, weight 600, padding 10 -->
+  <text x="${width / 2}" y="${height - 15}" text-anchor="middle" font-size="13" font-weight="600" fill="${styleConfig.textColor}">${escapeXml(styleConfig.showEmoji ? '📅 ' : '')}Date</text>
+  <text x="15" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" fill="${styleConfig.textColor}" transform="rotate(-90 15 ${height / 2})">${escapeXml(styleConfig.showEmoji ? '⭐ ' : '')}Number of Stars</text>
 </svg>`;
 
   return svg;
@@ -1081,12 +1087,32 @@ app.get('/api/chart-image', async (req, res) => {
     // Generate chart SVG with improved font handling
     const svg = generateChartSVG(timelineData, 800, 400, chartStyle);
 
-    // Return SVG directly - browsers render fonts correctly
-    // GitHub markdown supports SVG images
-    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow cross-origin requests
-    res.send(svg);
+    // Convert SVG to PNG - use librsvg backend which handles fonts better
+    try {
+      const pngBuffer = await sharp(Buffer.from(svg), {
+        density: 144, // Higher DPI for better text rendering
+        limitInputPixels: false
+      })
+        .resize(800, 400, {
+          fit: 'contain',
+          background: { r: 255, g: 255, b: 255, alpha: 0 }
+        })
+        .png()
+        .toBuffer();
+
+      // Set headers for PNG image
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.setHeader('Access-Control-Allow-Origin', '*'); // Allow cross-origin requests
+      res.send(pngBuffer);
+    } catch (error) {
+      console.error('Error converting SVG to PNG, falling back to SVG:', error);
+      // Fallback to SVG if PNG conversion fails
+      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.send(svg);
+    }
   } catch (error) {
     console.error('Error generating chart image:', error);
     // Return error image instead of JSON
