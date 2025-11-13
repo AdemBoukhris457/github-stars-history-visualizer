@@ -174,8 +174,34 @@ function generateErrorSVG(message, width = 800, height = 400) {
   return svg;
 }
 
-// Generate SVG chart from timeline data (no native dependencies needed)
-function generateChartSVG(timelineData, width = 800, height = 400) {
+// Helper function to create smooth bezier curve path (catmull-rom spline approximation)
+function createSmoothPath(coordinates, tension = 0.1) {
+  if (coordinates.length < 2) return '';
+  if (coordinates.length === 2) {
+    return `M ${coordinates[0].x} ${coordinates[0].y} L ${coordinates[1].x} ${coordinates[1].y}`;
+  }
+
+  let path = `M ${coordinates[0].x} ${coordinates[0].y}`;
+  
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const p0 = coordinates[Math.max(0, i - 1)];
+    const p1 = coordinates[i];
+    const p2 = coordinates[i + 1];
+    const p3 = coordinates[Math.min(coordinates.length - 1, i + 2)];
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6 * (1 - tension);
+    const cp1y = p1.y + (p2.y - p0.y) / 6 * (1 - tension);
+    const cp2x = p2.x - (p3.x - p1.x) / 6 * (1 - tension);
+    const cp2y = p2.y - (p3.y - p1.y) / 6 * (1 - tension);
+
+    path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+  }
+
+  return path;
+}
+
+// Generate SVG chart from timeline data (matches Chart.js professional style)
+function generateChartSVG(timelineData, width = 800, height = 400, style = 'professional') {
   // Prepare data
   const allDates = new Set();
   timelineData.forEach(data => {
@@ -185,13 +211,15 @@ function generateChartSVG(timelineData, width = 800, height = 400) {
   });
 
   const sortedDates = Array.from(allDates).sort();
-  const colors = [
+  
+  // Professional style colors (matching Chart.js)
+  const professionalColors = [
     '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
     '#9333ea', '#ea580c', '#0891b2', '#be185d'
   ];
 
-  // Calculate chart dimensions
-  const padding = { top: 60, right: 40, bottom: 60, left: 80 };
+  // Calculate chart dimensions (matching Chart.js padding)
+  const padding = { top: 80, right: 60, bottom: 80, left: 90 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
@@ -217,17 +245,17 @@ function generateChartSVG(timelineData, width = 800, height = 400) {
     datasets.push({
       label: `${data.owner}/${data.repo}`,
       data: starsData,
-      color: colors[index % colors.length]
+      color: professionalColors[index % professionalColors.length]
     });
   });
 
   // Find min/max values for scaling (always start at 0 like the app)
   const allValues = datasets.flatMap(d => d.data);
-  const minValue = 0; // Always start at 0 like the app
+  const minValue = 0;
   const maxValue = Math.max(...allValues);
   const valueRange = maxValue - minValue || 1;
 
-  // Generate SVG path and points for each dataset
+  // Generate smooth bezier curve paths and points for each dataset
   const chartElements = datasets.map((dataset, index) => {
     // Calculate coordinates for all points
     const coordinates = dataset.data.map((value, i) => {
@@ -236,12 +264,12 @@ function generateChartSVG(timelineData, width = 800, height = 400) {
       return { x, y, value };
     });
 
-    // Build path string (space-separated for polyline points attribute)
-    const pathPoints = coordinates.map(coord => `${coord.x} ${coord.y}`).join(' ');
+    // Create smooth bezier curve path (tension 0.1 like Chart.js professional)
+    const pathData = createSmoothPath(coordinates, 0.1);
 
-    // Generate path element
-    const path = `<polyline
-      points="${pathPoints}"
+    // Generate path element with smooth curve
+    const path = `<path
+      d="${pathData}"
       fill="none"
       stroke="${dataset.color}"
       stroke-width="2.5"
@@ -249,55 +277,85 @@ function generateChartSVG(timelineData, width = 800, height = 400) {
       stroke-linejoin="round"
     />`;
 
-    // Generate data points (circles) like in the app
-    const points = coordinates.map(coord => 
-      `<circle cx="${coord.x}" cy="${coord.y}" r="3" fill="${dataset.color}" stroke="white" stroke-width="2"/>`
-    ).join('\n      ');
+    // Generate data points (circles) matching Chart.js style
+    // Only show points for significant data points to avoid clutter
+    const pointStep = Math.max(1, Math.floor(coordinates.length / 20));
+    const points = coordinates
+      .filter((_, i) => i % pointStep === 0 || i === coordinates.length - 1)
+      .map(coord => 
+        `<circle cx="${coord.x}" cy="${coord.y}" r="3" fill="${dataset.color}" stroke="white" stroke-width="2"/>`
+      ).join('\n      ');
 
     return path + '\n      ' + points;
   }).join('\n    ');
 
-  // Generate grid lines
+  // Generate grid lines (matching Chart.js professional style)
   const gridLines = [];
-  // Horizontal grid lines (Y-axis starts at 0)
+  // Horizontal grid lines (Y-axis)
   const numGridLines = 5;
   for (let i = 0; i <= numGridLines; i++) {
     const y = padding.top + chartHeight - (i / numGridLines) * chartHeight;
     const value = (i / numGridLines) * maxValue;
-    gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`);
-    gridLines.push(`<text x="${padding.left - 10}" y="${y + 5}" text-anchor="end" font-size="12" fill="#6b7280">${Math.round(value).toLocaleString()}</text>`);
+    gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(0, 0, 0, 0.05)" stroke-width="1"/>`);
+    gridLines.push(`<text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="#6b7280">${Math.round(value).toLocaleString()}</text>`);
   }
 
-  // Vertical grid lines (show fewer dates)
+  // Vertical grid lines (X-axis dates)
   const dateStep = Math.max(1, Math.floor(sortedDates.length / 8));
   for (let i = 0; i < sortedDates.length; i += dateStep) {
     const x = padding.left + (i / (sortedDates.length - 1 || 1)) * chartWidth;
     const date = sortedDates[i];
     const dateLabel = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="#e5e7eb" stroke-width="1"/>`);
-    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 20}" text-anchor="middle" font-size="10" fill="#6b7280" transform="rotate(-45 ${x} ${height - padding.bottom + 20})">${dateLabel}</text>`);
+    gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="rgba(0, 0, 0, 0.05)" stroke-width="1"/>`);
+    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 25}" text-anchor="middle" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="#6b7280" transform="rotate(-45 ${x} ${height - padding.bottom + 25})">${dateLabel}</text>`);
   }
 
-  // Generate legend
-  const legendItems = datasets.map((dataset, index) => {
-    const x = width - padding.right - 200 + (index % 2) * 100;
-    const y = 30 + Math.floor(index / 2) * 25;
-    return `<circle cx="${x}" cy="${y}" r="5" fill="${dataset.color}"/>
-      <text x="${x + 15}" y="${y + 5}" font-size="12" fill="#374151">${dataset.label}</text>`;
-  }).join('\n    ');
+  // Generate legend (matching Chart.js professional style - top right)
+  const legendItems = [];
+  datasets.forEach((dataset, index) => {
+    const itemsPerRow = Math.min(2, datasets.length);
+    const row = Math.floor(index / itemsPerRow);
+    const col = index % itemsPerRow;
+    const x = width - padding.right - 180 + col * 90;
+    const y = 35 + row * 25;
+    legendItems.push(`<circle cx="${x}" cy="${y}" r="5" fill="${dataset.color}"/>
+      <text x="${x + 15}" y="${y + 5}" font-size="13" font-weight="500" font-family="'Segoe UI', -apple-system, sans-serif" fill="#374151">${dataset.label}</text>`);
+  });
 
-  // Build SVG
+  // Background gradient matching Chart.js professional style
+  const backgroundGradient = `<defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f7fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#edf2f7;stop-opacity:1" />
+    </linearGradient>
+  </defs>`;
+
+  // Build SVG with professional styling
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="${width}" height="${height}" fill="white"/>
-  <text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="600" fill="#1f2937">GitHub Stars Over Time</text>
-  ${gridLines.join('\n    ')}
+  ${backgroundGradient}
+  <rect width="${width}" height="${height}" fill="url(#bgGradient)"/>
+  <rect width="${width}" height="${height}" fill="none" stroke="rgba(226, 232, 240, 0.8)" stroke-width="1"/>
+  
+  <!-- Title -->
+  <text x="${width / 2}" y="35" text-anchor="middle" font-size="20" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="#1f2937">GitHub Stars Over Time</text>
+  
+  <!-- Grid lines -->
+  ${gridLines.join('\n  ')}
+  
+  <!-- Chart lines and points -->
   <g id="chart-lines">
     ${chartElements}
   </g>
+  
+  <!-- Legend -->
   <g id="legend">
-    ${legendItems}
+    ${legendItems.join('\n    ')}
   </g>
+  
+  <!-- Axis labels -->
+  <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="#374151">Date</text>
+  <text x="20" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="#374151" transform="rotate(-90 20 ${height / 2})">Number of Stars</text>
 </svg>`;
 
   return svg;
