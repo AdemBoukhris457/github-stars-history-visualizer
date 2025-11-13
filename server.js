@@ -1081,27 +1081,12 @@ app.get('/api/chart-image', async (req, res) => {
     // Generate chart SVG with improved font handling
     const svg = generateChartSVG(timelineData, 800, 400, chartStyle);
 
-    // Convert SVG to PNG for better GitHub markdown compatibility
-    // GitHub doesn't always render external SVG images for security reasons
-    try {
-      const pngBuffer = await sharp(Buffer.from(svg))
-        .resize(800, 400)
-        .png()
-        .toBuffer();
-
-      // Set headers for PNG image
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-      res.setHeader('Access-Control-Allow-Origin', '*'); // Allow cross-origin requests
-      res.send(pngBuffer);
-    } catch (error) {
-      console.error('Error converting SVG to PNG, falling back to SVG:', error);
-      // Fallback to SVG if PNG conversion fails
-      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.send(svg);
-    }
+    // Return SVG directly - browsers render fonts correctly
+    // GitHub markdown supports SVG images
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow cross-origin requests
+    res.send(svg);
   } catch (error) {
     console.error('Error generating chart image:', error);
     // Return error image instead of JSON
