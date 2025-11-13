@@ -207,7 +207,180 @@ function createSmoothPath(coordinates, tension = 0.1) {
   return path;
 }
 
-// Generate SVG chart from timeline data (matches Chart.js professional style)
+// Get style configuration
+function getStyleConfig(style) {
+  const styles = {
+    professional: {
+      colors: ['#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#9333ea', '#ea580c', '#0891b2', '#be185d'],
+      tension: 0.1,
+      strokeWidth: 2.5,
+      pointRadius: 3,
+      pointStroke: 'white',
+      pointStrokeWidth: 2,
+      fill: false,
+      bgGradient: ['#f7fafc', '#edf2f7'],
+      bgStroke: 'rgba(226, 232, 240, 0.8)',
+      gridColor: 'rgba(0, 0, 0, 0.05)',
+      textColor: '#1f2937',
+      legendTextColor: '#374151',
+      tickColor: '#6b7280',
+      title: 'GitHub Stars Over Time',
+      titleSize: 20,
+      titleWeight: 600,
+      showEmoji: false
+    },
+    aesthetic: {
+      colors: [
+        { start: '#667eea', end: '#764ba2' },
+        { start: '#f093fb', end: '#f5576c' },
+        { start: '#4facfe', end: '#00f2fe' },
+        { start: '#43e97b', end: '#38f9d7' },
+        { start: '#fa709a', end: '#fee140' },
+        { start: '#30cfd0', end: '#330867' },
+        { start: '#a8edea', end: '#fed6e3' },
+        { start: '#ff9a9e', end: '#fecfef' }
+      ],
+      tension: 0.5,
+      strokeWidth: 3,
+      pointRadius: 4,
+      pointStroke: 'white',
+      pointStrokeWidth: 2.5,
+      fill: true,
+      bgGradient: ['#0f4c75', '#3282b8', '#bbe1fa'],
+      bgStroke: 'rgba(255,255,255,0.2)',
+      gridColor: 'rgba(255, 255, 255, 0.2)',
+      textColor: '#ffffff',
+      legendTextColor: '#ffffff',
+      tickColor: 'rgba(255, 255, 255, 0.9)',
+      title: '⭐ GitHub Stars Over Time',
+      titleSize: 24,
+      titleWeight: 700,
+      showEmoji: true
+    },
+    dark: {
+      colors: ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#14b8a6'],
+      tension: 0.4,
+      strokeWidth: 3,
+      pointRadius: 4,
+      pointStroke: '#1a1a2e',
+      pointStrokeWidth: 2,
+      fill: true,
+      fillOpacity: '30',
+      bgGradient: ['#1a1a2e', '#16213e', '#0f3460'],
+      bgStroke: 'rgba(255,255,255,0.1)',
+      gridColor: 'rgba(255, 255, 255, 0.1)',
+      textColor: '#ffffff',
+      legendTextColor: '#ffffff',
+      tickColor: 'rgba(255, 255, 255, 0.9)',
+      title: '⭐ GitHub Stars Over Time',
+      titleSize: 22,
+      titleWeight: 700,
+      showEmoji: true
+    },
+    minimal: {
+      colors: ['#64748b', '#475569', '#334155', '#1e293b', '#0f172a', '#94a3b8', '#cbd5e1', '#e2e8f0'],
+      tension: 0,
+      strokeWidth: 2,
+      pointRadius: 0,
+      pointStroke: '#fff',
+      pointStrokeWidth: 2,
+      fill: false,
+      bgGradient: ['#ffffff', '#ffffff'],
+      bgStroke: '#e5e7eb',
+      gridColor: 'rgba(0, 0, 0, 0.05)',
+      textColor: '#1f2937',
+      legendTextColor: '#4a5568',
+      tickColor: '#6b7280',
+      title: 'GitHub Stars Over Time',
+      titleSize: 18,
+      titleWeight: 600,
+      showEmoji: false
+    },
+    vibrant: {
+      colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f7b731', '#ee5a6f', '#00d2d3', '#ff9ff3', '#54a0ff'],
+      tension: 0.6,
+      strokeWidth: 4,
+      pointRadius: 5,
+      pointStroke: '#fff',
+      pointStrokeWidth: 3,
+      fill: true,
+      fillOpacity: '40',
+      bgGradient: ['#ff6b6b', '#4ecdc4', '#45b7d1'],
+      bgStroke: 'rgba(255,255,255,0.3)',
+      gridColor: 'rgba(255, 255, 255, 0.2)',
+      textColor: '#ffffff',
+      legendTextColor: '#ffffff',
+      tickColor: 'rgba(255, 255, 255, 0.95)',
+      title: '⭐ GitHub Stars Over Time',
+      titleSize: 24,
+      titleWeight: 800,
+      showEmoji: true
+    },
+    pastel: {
+      colors: ['#ffeaa7', '#fab1a0', '#fd79a8', '#fdcb6e', '#e17055', '#74b9ff', '#a29bfe', '#fd79a8'],
+      tension: 0.5,
+      strokeWidth: 3,
+      pointRadius: 4,
+      pointStroke: '#fff',
+      pointStrokeWidth: 2.5,
+      fill: true,
+      fillOpacity: '60',
+      bgGradient: ['#ffeaa7', '#fab1a0', '#fd79a8'],
+      bgStroke: 'rgba(255,255,255,0.5)',
+      gridColor: 'rgba(0, 0, 0, 0.05)',
+      textColor: '#1f2937',
+      legendTextColor: '#4a5568',
+      tickColor: '#6b7280',
+      title: '⭐ GitHub Stars Over Time',
+      titleSize: 22,
+      titleWeight: 700,
+      showEmoji: true
+    },
+    neon: {
+      colors: ['#8a2be2', '#00ffff', '#ff00ff', '#00ff00', '#ffff00', '#ff1493', '#00bfff', '#ff00ff'],
+      tension: 0.5,
+      strokeWidth: 4,
+      pointRadius: 5,
+      pointStroke: '#0a0a0a',
+      pointStrokeWidth: 3,
+      fill: true,
+      fillOpacity: 'CC',
+      bgGradient: ['#0a0a0a', '#1a0033', '#330066'],
+      bgStroke: 'rgba(138, 43, 226, 0.5)',
+      gridColor: 'rgba(138, 43, 226, 0.2)',
+      textColor: '#ffffff',
+      legendTextColor: '#ffffff',
+      tickColor: 'rgba(255, 255, 255, 0.9)',
+      title: '⭐ GitHub Stars Over Time',
+      titleSize: 24,
+      titleWeight: 800,
+      showEmoji: true
+    },
+    corporate: {
+      colors: ['#1e40af', '#059669', '#dc2626', '#7c3aed', '#ea580c', '#0891b2', '#be185d', '#475569'],
+      tension: 0.2,
+      strokeWidth: 2,
+      pointRadius: 3,
+      pointStroke: '#fff',
+      pointStrokeWidth: 2,
+      fill: false,
+      bgGradient: ['#f8f9fa', '#e9ecef'],
+      bgStroke: '#dee2e6',
+      gridColor: 'rgba(0, 0, 0, 0.06)',
+      textColor: '#1f2937',
+      legendTextColor: '#4a5568',
+      tickColor: '#6b7280',
+      title: 'GitHub Stars Over Time',
+      titleSize: 20,
+      titleWeight: 600,
+      showEmoji: false
+    }
+  };
+  
+  return styles[style] || styles.professional;
+}
+
+// Generate SVG chart from timeline data (supports all chart styles)
 function generateChartSVG(timelineData, width = 800, height = 400, style = 'professional') {
   // Prepare data
   const allDates = new Set();
@@ -218,14 +391,9 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   });
 
   const sortedDates = Array.from(allDates).sort();
+  const styleConfig = getStyleConfig(style);
   
-  // Professional style colors (matching Chart.js)
-  const professionalColors = [
-    '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
-    '#9333ea', '#ea580c', '#0891b2', '#be185d'
-  ];
-
-  // Calculate chart dimensions (matching Chart.js padding)
+  // Calculate chart dimensions
   const padding = { top: 80, right: 60, bottom: 80, left: 90 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
@@ -249,18 +417,45 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
       return lastCount;
     });
 
+    // Get color based on style
+    let color;
+    if (style === 'aesthetic' && Array.isArray(styleConfig.colors[0])) {
+      // Aesthetic uses gradient, use start color
+      color = styleConfig.colors[index % styleConfig.colors.length].start;
+    } else {
+      color = styleConfig.colors[index % styleConfig.colors.length];
+    }
+
     datasets.push({
       label: `${data.owner}/${data.repo}`,
       data: starsData,
-      color: professionalColors[index % professionalColors.length]
+      color: color,
+      gradient: style === 'aesthetic' && Array.isArray(styleConfig.colors[0]) 
+        ? styleConfig.colors[index % styleConfig.colors.length] 
+        : null
     });
   });
 
-  // Find min/max values for scaling (always start at 0 like the app)
+  // Find min/max values for scaling
   const allValues = datasets.flatMap(d => d.data);
   const minValue = 0;
   const maxValue = Math.max(...allValues);
   const valueRange = maxValue - minValue || 1;
+
+  // Generate gradients for aesthetic style
+  let gradientDefs = '';
+  if (style === 'aesthetic') {
+    datasets.forEach((dataset, index) => {
+      if (dataset.gradient) {
+        const gradId = `gradient-${index}`;
+        gradientDefs += `
+    <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:${dataset.gradient.start};stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:${dataset.gradient.end};stop-opacity:0.1" />
+    </linearGradient>`;
+      }
+    });
+  }
 
   // Generate smooth bezier curve paths and points for each dataset
   const chartElements = datasets.map((dataset, index) => {
@@ -271,40 +466,63 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
       return { x, y, value };
     });
 
-    // Create smooth bezier curve path (tension 0.1 like Chart.js professional)
-    const pathData = createSmoothPath(coordinates, 0.1);
+    // Create smooth bezier curve path
+    const pathData = createSmoothPath(coordinates, styleConfig.tension);
+
+    // Generate fill area if needed
+    let fillArea = '';
+    if (styleConfig.fill) {
+      const fillPath = pathData + ` L ${coordinates[coordinates.length - 1].x} ${padding.top + chartHeight} L ${coordinates[0].x} ${padding.top + chartHeight} Z`;
+      if (style === 'aesthetic' && dataset.gradient) {
+        fillArea = `<path d="${fillPath}" fill="url(#gradient-${index})" opacity="0.8"/>`;
+      } else {
+        const fillColor = typeof dataset.color === 'string' ? dataset.color : dataset.color.start;
+        const opacity = styleConfig.fillOpacity || '30';
+        fillArea = `<path d="${fillPath}" fill="${fillColor}${opacity}" opacity="0.6"/>`;
+      }
+    }
 
     // Generate path element with smooth curve
+    // For aesthetic style, use gradient start color for stroke (SVG stroke gradients are complex)
+    const strokeColor = style === 'aesthetic' && dataset.gradient 
+      ? dataset.gradient.start 
+      : (typeof dataset.color === 'string' ? dataset.color : dataset.color.start);
+    
     const path = `<path
       d="${pathData}"
       fill="none"
-      stroke="${dataset.color}"
-      stroke-width="2.5"
+      stroke="${strokeColor}"
+      stroke-width="${styleConfig.strokeWidth}"
       stroke-linecap="round"
       stroke-linejoin="round"
     />`;
 
-    // Generate data points (circles) matching Chart.js style
-    // Only show points for significant data points to avoid clutter
-    const pointStep = Math.max(1, Math.floor(coordinates.length / 20));
-    const points = coordinates
-      .filter((_, i) => i % pointStep === 0 || i === coordinates.length - 1)
-      .map(coord => 
-        `<circle cx="${coord.x}" cy="${coord.y}" r="3" fill="${dataset.color}" stroke="white" stroke-width="2"/>`
-      ).join('\n      ');
+    // Generate data points
+    let points = '';
+    if (styleConfig.pointRadius > 0) {
+      const pointStep = Math.max(1, Math.floor(coordinates.length / 20));
+      const pointCoords = coordinates
+        .filter((_, i) => i % pointStep === 0 || i === coordinates.length - 1);
+      
+      points = pointCoords.map(coord => {
+        const pointColor = style === 'aesthetic' && dataset.gradient 
+          ? dataset.gradient.start 
+          : (typeof dataset.color === 'string' ? dataset.color : dataset.color.start);
+        return `<circle cx="${coord.x}" cy="${coord.y}" r="${styleConfig.pointRadius}" fill="${pointColor}" stroke="${styleConfig.pointStroke}" stroke-width="${styleConfig.pointStrokeWidth}"/>`;
+      }).join('\n      ');
+    }
 
-    return path + '\n      ' + points;
+    return (fillArea ? fillArea + '\n      ' : '') + path + (points ? '\n      ' + points : '');
   }).join('\n    ');
 
-  // Generate grid lines (matching Chart.js professional style)
+  // Generate grid lines
   const gridLines = [];
-  // Horizontal grid lines (Y-axis)
   const numGridLines = 5;
   for (let i = 0; i <= numGridLines; i++) {
     const y = padding.top + chartHeight - (i / numGridLines) * chartHeight;
     const value = (i / numGridLines) * maxValue;
-    gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(0, 0, 0, 0.05)" stroke-width="1"/>`);
-    gridLines.push(`<text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="#6b7280">${Math.round(value).toLocaleString()}</text>`);
+    gridLines.push(`<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${styleConfig.gridColor}" stroke-width="1"/>`);
+    gridLines.push(`<text x="${padding.left - 15}" y="${y + 4}" text-anchor="end" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.tickColor}">${Math.round(value).toLocaleString()}</text>`);
   }
 
   // Vertical grid lines (X-axis dates)
@@ -313,11 +531,11 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     const x = padding.left + (i / (sortedDates.length - 1 || 1)) * chartWidth;
     const date = sortedDates[i];
     const dateLabel = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="rgba(0, 0, 0, 0.05)" stroke-width="1"/>`);
-    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 25}" text-anchor="middle" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="#6b7280" transform="rotate(-45 ${x} ${height - padding.bottom + 25})">${dateLabel}</text>`);
+    gridLines.push(`<line x1="${x}" y1="${padding.top}" x2="${x}" y2="${height - padding.bottom}" stroke="${styleConfig.gridColor}" stroke-width="1"/>`);
+    gridLines.push(`<text x="${x}" y="${height - padding.bottom + 25}" text-anchor="middle" font-size="11" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.tickColor}" transform="rotate(-45 ${x} ${height - padding.bottom + 25})">${dateLabel}</text>`);
   }
 
-  // Generate legend (matching Chart.js professional style - top right)
+  // Generate legend
   const legendItems = [];
   datasets.forEach((dataset, index) => {
     const itemsPerRow = Math.min(2, datasets.length);
@@ -325,27 +543,33 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
     const col = index % itemsPerRow;
     const x = width - padding.right - 180 + col * 90;
     const y = 35 + row * 25;
-    legendItems.push(`<circle cx="${x}" cy="${y}" r="5" fill="${dataset.color}"/>
-      <text x="${x + 15}" y="${y + 5}" font-size="13" font-weight="500" font-family="'Segoe UI', -apple-system, sans-serif" fill="#374151">${dataset.label}</text>`);
+    const legendColor = style === 'aesthetic' && dataset.gradient 
+      ? dataset.gradient.start 
+      : (typeof dataset.color === 'string' ? dataset.color : dataset.color.start);
+    legendItems.push(`<circle cx="${x}" cy="${y}" r="5" fill="${legendColor}"/>
+      <text x="${x + 15}" y="${y + 5}" font-size="13" font-weight="500" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.legendTextColor}">${dataset.label}</text>`);
   });
 
-  // Background gradient matching Chart.js professional style
+  // Background gradient
+  const bgGradientId = `bgGradient-${style}`;
   const backgroundGradient = `<defs>
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f7fafc;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#edf2f7;stop-opacity:1" />
-    </linearGradient>
+    <linearGradient id="${bgGradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:${styleConfig.bgGradient[0]};stop-opacity:1" />
+      <stop offset="${styleConfig.bgGradient.length === 3 ? '50%' : '100%'}" style="stop-color:${styleConfig.bgGradient[1]};stop-opacity:1" />
+      ${styleConfig.bgGradient.length === 3 ? `<stop offset="100%" style="stop-color:${styleConfig.bgGradient[2]};stop-opacity:1" />` : ''}
+    </linearGradient>${gradientDefs}
   </defs>`;
 
-  // Build SVG with professional styling
+  // Build SVG
+  const titleText = styleConfig.showEmoji ? styleConfig.title : styleConfig.title.replace('⭐ ', '');
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
   ${backgroundGradient}
-  <rect width="${width}" height="${height}" fill="url(#bgGradient)"/>
-  <rect width="${width}" height="${height}" fill="none" stroke="rgba(226, 232, 240, 0.8)" stroke-width="1"/>
+  <rect width="${width}" height="${height}" fill="url(#${bgGradientId})"/>
+  <rect width="${width}" height="${height}" fill="none" stroke="${styleConfig.bgStroke}" stroke-width="1"/>
   
   <!-- Title -->
-  <text x="${width / 2}" y="35" text-anchor="middle" font-size="20" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="#1f2937">GitHub Stars Over Time</text>
+  <text x="${width / 2}" y="35" text-anchor="middle" font-size="${styleConfig.titleSize}" font-weight="${styleConfig.titleWeight}" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.textColor}">${titleText}</text>
   
   <!-- Grid lines -->
   ${gridLines.join('\n  ')}
@@ -361,8 +585,8 @@ function generateChartSVG(timelineData, width = 800, height = 400, style = 'prof
   </g>
   
   <!-- Axis labels -->
-  <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="#374151">Date</text>
-  <text x="20" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="#374151" transform="rotate(-90 20 ${height / 2})">Number of Stars</text>
+  <text x="${width / 2}" y="${height - 20}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.textColor}">${styleConfig.showEmoji ? '📅 ' : ''}Date</text>
+  <text x="20" y="${height / 2}" text-anchor="middle" font-size="13" font-weight="600" font-family="'Segoe UI', -apple-system, sans-serif" fill="${styleConfig.textColor}" transform="rotate(-90 20 ${height / 2})">${styleConfig.showEmoji ? '⭐ ' : ''}Number of Stars</text>
 </svg>`;
 
   return svg;
@@ -419,7 +643,8 @@ app.post('/api/stars-history', async (req, res) => {
 // API endpoint to serve chart image (for markdown - auto-updates)
 app.get('/api/chart-image', async (req, res) => {
   try {
-    const { repos } = req.query;
+    const { repos, style } = req.query;
+    const chartStyle = style || 'professional'; // Default to professional if not specified
     if (!repos) {
       // Return error image instead of JSON
       const errorSvg = generateErrorSVG('Repos parameter is required');
@@ -515,8 +740,8 @@ app.get('/api/chart-image', async (req, res) => {
       }
     }
 
-    // Generate chart SVG (no native dependencies needed)
-    const svg = generateChartSVG(timelineData);
+    // Generate chart SVG with the specified style
+    const svg = generateChartSVG(timelineData, 800, 400, chartStyle);
 
     // Convert SVG to PNG for better GitHub markdown compatibility
     // GitHub doesn't always render external SVG images for security reasons

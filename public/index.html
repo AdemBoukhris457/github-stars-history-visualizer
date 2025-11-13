@@ -1525,23 +1525,24 @@
 
             const repoList = Object.keys(chartData);
             const currentUrl = window.location.origin;
+            const currentStyle = document.getElementById('chartStyle').value;
             
             // Generate short markdown format similar to star-history.com
             // Format: [![Star History Chart](image-url)](link-url)
-            // Use dynamic API endpoint that auto-updates
+            // Use dynamic API endpoint that auto-updates with current chart style
             let markdown;
             
             if (repoList.length === 1) {
-                // Single repository - use dynamic image endpoint
+                // Single repository - use dynamic image endpoint with style
                 const repo = repoList[0];
-                const imageUrl = `${currentUrl}/api/chart-image?repos=${encodeURIComponent(repo)}`;
+                const imageUrl = `${currentUrl}/api/chart-image?repos=${encodeURIComponent(repo)}&style=${encodeURIComponent(currentStyle)}`;
                 const linkUrl = `${currentUrl}?repo=${encodeURIComponent(repo)}`;
                 
                 markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
             } else {
-                // Multiple repositories - use dynamic image endpoint
+                // Multiple repositories - use dynamic image endpoint with style
                 const reposParam = repoList.join(',');
-                const imageUrl = `${currentUrl}/api/chart-image?repos=${encodeURIComponent(reposParam)}`;
+                const imageUrl = `${currentUrl}/api/chart-image?repos=${encodeURIComponent(reposParam)}&style=${encodeURIComponent(currentStyle)}`;
                 const linkUrl = `${currentUrl}?repos=${encodeURIComponent(reposParam)}`;
                 
                 markdown = `[![Star History Chart](${imageUrl})](${linkUrl})`;
