@@ -207,47 +207,8 @@
                 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
-        .chart-container.minimal {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            box-shadow: none;
-        }
-
-        .chart-container.vibrant {
-            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 
-                inset 0 2px 8px rgba(0,0,0,0.1),
-                0 8px 32px rgba(255, 107, 107, 0.3);
-        }
-
-        .chart-container.pastel {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #fd79a8 100%);
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 
-                inset 0 2px 8px rgba(0,0,0,0.05),
-                0 8px 32px rgba(253, 121, 168, 0.2);
-        }
-
-        .chart-container.neon {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #330066 100%);
-            border: 1px solid rgba(138, 43, 226, 0.5);
-            box-shadow: 
-                inset 0 2px 8px rgba(0,0,0,0.5),
-                0 0 20px rgba(138, 43, 226, 0.3),
-                0 8px 32px rgba(0, 0, 0, 0.6);
-        }
-
-        .chart-container.corporate {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border: 2px solid #dee2e6;
-            box-shadow: 
-                inset 0 2px 4px rgba(0,0,0,0.06),
-                0 4px 16px rgba(0,0,0,0.1);
-        }
-
         /* Default professional style */
-        .chart-container:not(.aesthetic):not(.dark):not(.minimal):not(.vibrant):not(.pastel):not(.neon):not(.corporate) {
+        .chart-container:not(.aesthetic):not(.dark) {
             background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
             border: 1px solid rgba(226, 232, 240, 0.8);
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
@@ -390,11 +351,6 @@
                         <option value="professional">Professional</option>
                         <option value="aesthetic">Aesthetic</option>
                         <option value="dark">Dark Mode</option>
-                        <option value="minimal">Minimal</option>
-                        <option value="vibrant">Vibrant</option>
-                        <option value="pastel">Pastel</option>
-                        <option value="neon">Neon</option>
-                        <option value="corporate">Corporate</option>
                     </select>
                 </div>
             </div>
@@ -726,16 +682,11 @@
             const styleClasses = {
                 'professional': '',
                 'aesthetic': ' aesthetic',
-                'dark': ' dark',
-                'minimal': ' minimal',
-                'vibrant': ' vibrant',
-                'pastel': ' pastel',
-                'neon': ' neon',
-                'corporate': ' corporate'
+                'dark': ' dark'
             };
             
             // Remove all style classes first
-            chartContainer.classList.remove('aesthetic', 'dark', 'minimal', 'vibrant', 'pastel', 'neon', 'corporate');
+            chartContainer.classList.remove('aesthetic', 'dark');
             
             // Add the new style class if it exists
             if (styleClasses[chartStyle] && styleClasses[chartStyle].trim()) {
@@ -837,15 +788,6 @@
                     }
                 }
 
-                // Special handling for neon style
-                if (chartStyle === 'neon') {
-                    const neonGlow = ctx.createLinearGradient(0, 0, 0, 400);
-                    neonGlow.addColorStop(0, color + 'CC');
-                    neonGlow.addColorStop(1, color + '20');
-                    dataset.backgroundColor = neonGlow;
-                    dataset.shadowBlur = 10;
-                    dataset.shadowColor = color;
-                }
 
                 datasets.push(dataset);
                 colorIndex++;
@@ -856,7 +798,7 @@
 
             // Chart options based on style - using shared config
             const getAnimationDuration = (style) => {
-                const longAnimations = ['aesthetic', 'vibrant', 'neon', 'pastel'];
+                const longAnimations = ['aesthetic'];
                 return longAnimations.includes(style) ? 2000 : 1000;
             };
             
@@ -875,8 +817,7 @@
             };
             
             // Determine if dark theme
-            const isDark = ['dark', 'neon', 'aesthetic'].includes(chartStyle) || 
-                          (chartStyle === 'vibrant' || chartStyle === 'pastel');
+            const isDark = ['dark', 'aesthetic'].includes(chartStyle);
             
             // Tooltip background based on theme
             const tooltipBg = isDark 
