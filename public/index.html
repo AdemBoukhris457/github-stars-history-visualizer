@@ -640,8 +640,8 @@
             const forceRefresh = document.getElementById('forceRefresh').checked;
             const btn = document.querySelector('button[onclick="addRepository()"]');
             if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Loading...';
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
             }
 
             showMessage('Fetching stars history...', 'info');
@@ -703,8 +703,8 @@
                 console.error(error);
             } finally {
                 if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Add Repository';
+                btn.disabled = false;
+                btn.textContent = 'Add Repository';
                 }
             }
         }
@@ -716,12 +716,13 @@
                 return;
             }
 
+            // Ensure chart card is visible
             chartCard.classList.remove('hidden');
             const ctx = document.getElementById('starsChart').getContext('2d');
             const chartStyle = document.getElementById('chartStyle').value;
             const chartContainer = document.getElementById('chartContainer');
 
-            // Update container class based on style
+            // Update container class based on style - remove old style classes first
             const styleClasses = {
                 'professional': '',
                 'aesthetic': ' aesthetic',
@@ -732,7 +733,20 @@
                 'neon': ' neon',
                 'corporate': ' corporate'
             };
-            chartContainer.className = 'chart-container' + (styleClasses[chartStyle] || '');
+            
+            // Remove all style classes first
+            chartContainer.classList.remove('aesthetic', 'dark', 'minimal', 'vibrant', 'pastel', 'neon', 'corporate');
+            
+            // Add the new style class if it exists
+            if (styleClasses[chartStyle] && styleClasses[chartStyle].trim()) {
+                chartContainer.classList.add(styleClasses[chartStyle].trim());
+            }
+            
+            // Ensure canvas has proper dimensions
+            const canvas = document.getElementById('starsChart');
+            // Reset canvas size to let Chart.js handle it
+            canvas.style.width = '100%';
+            canvas.style.height = '500px';
 
             // Destroy existing chart
             if (chart) {
@@ -876,6 +890,7 @@
             const emoji = styleConfig.showEmoji ? '⭐ ' : '';
             
             // Create unified chart options using style config
+            try {
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -997,6 +1012,10 @@
                         }
                     }
                 });
+            } catch (error) {
+                console.error('Error creating chart:', error);
+                showMessage('Error creating chart: ' + error.message, 'error');
+            }
         }
 
         function updateStats() {
