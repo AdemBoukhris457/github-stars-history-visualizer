@@ -1,74 +1,162 @@
-# GitHub Stars History Visualizer
+# ⭐ GitHub Stars History Visualizer
 
-A web application to visualize the growth of GitHub stars over time for one or more repositories. This tool fetches stargazer data from the GitHub API and creates beautiful interactive charts showing the star history.
+> 📊 Beautiful, dynamic charts showing GitHub repository star growth over time. Perfect for README files and project documentation.
 
-## Features
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=AdemBoukhris457%2FDoctra&style=professional)](https://github-stars-history-visualizer.vercel.app?repo=AdemBoukhris457%2FDoctra)
 
-- 📊 **Interactive Charts**: Beautiful line charts showing stars growth over time
-- 🎨 **Two Chart Styles**: Choose between Professional (clean, business-ready) or Aesthetic (beautiful gradients and animations)
-- 📝 **Markdown Export**: Generate markdown code with embedded chart image for your README files
-- 📥 **Chart Export**: Download charts as PNG images
-- 🔄 **Data Caching**: Automatically caches data locally to avoid repeated API calls
-- 📈 **Multiple Repositories**: Compare stars history across multiple repositories
-- 🚀 **No Authentication Required**: Works without GitHub authentication (with rate limits)
-- 💾 **Persistent Storage**: Data is saved locally in JSON files
+## 🚀 Quick Start
 
-## Prerequisites
+### Add to Your README
+
+Copy and paste this into your README.md:
+
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=YOUR_USERNAME%2FYOUR_REPO&style=professional)](https://github-stars-history-visualizer.vercel.app?repo=YOUR_USERNAME%2FYOUR_REPO)
+```
+
+**Replace:**
+- `YOUR_USERNAME` with your GitHub username
+- `YOUR_REPO` with your repository name
+
+### Example
+
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=facebook%2Freact&style=professional)](https://github-stars-history-visualizer.vercel.app?repo=facebook%2Freact)
+```
+
+## ✨ Features
+
+- 🎨 **8 Beautiful Themes** - Choose from professional, aesthetic, dark, minimal, vibrant, pastel, neon, and corporate styles
+- 📈 **Interactive Charts** - Hover to see detailed star counts at any point in time
+- 🔄 **Auto-Updating** - Charts automatically update when embedded in markdown
+- 📝 **Markdown Ready** - Generate markdown code with one click
+- 📥 **Export Options** - Download charts as PNG images
+- 🔀 **Multi-Repo Support** - Compare star growth across multiple repositories
+- 💾 **Smart Caching** - Data is cached to minimize API calls
+- 🎯 **Consistent Design** - Charts look identical in markdown and on the website
+
+## 🎨 Themes
+
+### Professional
+Clean, business-ready charts perfect for documentation.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=professional)
+```
+
+### Aesthetic
+Beautiful gradient charts with smooth animations.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=aesthetic)
+```
+
+### Dark
+Perfect for dark-themed projects.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=dark)
+```
+
+### Minimal
+Clean and simple, no distractions.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=minimal)
+```
+
+### Vibrant
+Bold and colorful charts.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=vibrant)
+```
+
+### Pastel
+Soft, gentle colors.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=pastel)
+```
+
+### Neon
+Cyberpunk-inspired neon glow.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=neon)
+```
+
+### Corporate
+Professional corporate style.
+
+```markdown
+![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=corporate)
+```
+
+## 📖 Usage
+
+### Single Repository
+
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=professional)](https://github-stars-history-visualizer.vercel.app?repo=username%2Frepo)
+```
+
+### Multiple Repositories
+
+Compare multiple repositories:
+
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username1%2Frepo1,username2%2Frepo2&style=professional)](https://github-stars-history-visualizer.vercel.app?repos=username1%2Frepo1,username2%2Frepo2)
+```
+
+### URL Parameters
+
+- `repos` - Repository in format `username/repo` (use `%2F` for `/`). For multiple repos, separate with commas
+- `style` - Chart theme: `professional`, `aesthetic`, `dark`, `minimal`, `vibrant`, `pastel`, `neon`, or `corporate`
+
+## 🖥️ Local Development
+
+### Prerequisites
 
 - Node.js (v14 or higher)
 - npm (comes with Node.js)
 
-## Installation
+### Installation
 
-1. Clone or download this repository
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/github-stars-history-visualizer.git
+cd github-stars-history-visualizer
+```
 
 2. Install dependencies:
 ```bash
 npm install
 ```
 
-## Usage
-
-1. Start the server:
+3. Start the server:
 ```bash
 npm start
 ```
 
-2. Open your browser and navigate to:
+4. Open your browser:
 ```
-http://localhost
+http://localhost:3000
 ```
 
-3. Enter a repository owner and name (e.g., `facebook` / `react`)
+## 🔧 API Endpoints
 
-4. Click "Add Repository" to fetch and visualize the stars history
+### GET `/api/chart-image`
+Generate a chart image for embedding in markdown.
 
-5. Add multiple repositories to compare their growth
+**Query Parameters:**
+- `repos` (required) - Repository in format `username/repo` or comma-separated list
+- `style` (optional) - Chart theme (default: `professional`)
 
-6. Use the "Chart Style" dropdown to switch between:
-   - **Professional**: Clean, business-ready charts with subtle colors and clear typography
-   - **Aesthetic**: Beautiful charts with gradient fills, smooth animations, and vibrant colors
-
-7. **Export Options**:
-   - Click "📥 Download Chart as PNG" to save the chart as an image
-   - Click "📝 Copy Markdown for README" to generate markdown code with the embedded chart image that you can paste directly into your README.md file
-
-## How It Works
-
-1. **Data Fetching**: The application uses the GitHub REST API to fetch all stargazers for a repository
-2. **Timeline Building**: It processes the stargazer data to build a daily timeline of star counts
-3. **Caching**: Data is cached in the `data/` directory to avoid repeated API calls
-4. **Visualization**: Chart.js is used to render interactive line charts
-
-## Rate Limits
-
-**Important**: Without GitHub authentication, the API rate limit is **60 requests per hour**. 
-
-- The application caches data locally to minimize API calls
-- Use the "Force refresh" option sparingly
-- For repositories with many stars, the initial fetch may take some time
-
-## API Endpoints
+**Example:**
+```
+GET /api/chart-image?repos=facebook%2Freact&style=professional
+```
 
 ### POST `/api/stars-history`
 Fetch stars history for a single repository.
@@ -78,7 +166,8 @@ Fetch stars history for a single repository.
 {
   "owner": "facebook",
   "repo": "react",
-  "forceRefresh": false
+  "forceRefresh": false,
+  "accessToken": "optional_github_token"
 }
 ```
 
@@ -92,48 +181,82 @@ Fetch stars history for multiple repositories.
     { "owner": "facebook", "repo": "react" },
     { "owner": "vuejs", "repo": "vue" }
   ],
-  "forceRefresh": false
+  "forceRefresh": false,
+  "accessToken": "optional_github_token"
 }
 ```
 
-## Project Structure
+## 📊 How It Works
 
-```
-github-stars-history-visualizer/
-├── server.js          # Express server and API endpoints
-├── package.json       # Dependencies
-├── public/
-│   └── index.html     # Frontend interface
-├── data/              # Cached repository data (created automatically)
-└── README.md          # This file
-```
+1. **Data Fetching**: Uses GitHub REST API to fetch all stargazers for a repository
+2. **Timeline Building**: Processes stargazer data to build a daily timeline of star counts
+3. **Caching**: Data is cached locally in JSON files to minimize API calls
+4. **Visualization**: Generates SVG charts for markdown and interactive Chart.js charts for the website
+5. **Consistency**: Both SVG and Chart.js use the same style configuration for identical appearance
 
-## Technologies Used
+## ⚡ Rate Limits
+
+**Without GitHub Authentication:**
+- 60 requests per hour (GitHub API limit)
+- Data is cached locally to minimize API calls
+
+**With GitHub Authentication:**
+- 5,000 requests per hour
+- Add your GitHub Personal Access Token in the web interface
+
+## 🚀 Deployment
+
+This application can be deployed to various platforms:
+
+- **Vercel** - [Deployment Guide](./VERCEL_DEPLOY.md)
+- **Railway** - Connect your GitHub repo
+- **Render** - Free tier available
+- **Heroku** - Classic platform
+- **Fly.io** - Global edge network
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+## 🛠️ Technologies
 
 - **Backend**: Node.js, Express
 - **Frontend**: Vanilla JavaScript, Chart.js
 - **API**: GitHub REST API v3
+- **Chart Generation**: SVG for markdown, Chart.js for interactive charts
 
-## License
+## 📝 Examples
 
-MIT License - see LICENSE file for details
+### Example 1: Single Repository with Professional Theme
 
-## Deployment
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=facebook%2Freact&style=professional)](https://github-stars-history-visualizer.vercel.app?repo=facebook%2Freact)
+```
 
-This application can be easily deployed to various platforms. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+### Example 2: Multiple Repositories with Aesthetic Theme
 
-**Quick Deploy Options:**
-- **Railway**: Easiest - just connect your GitHub repo
-- **Render**: Free tier available with automatic deployments
-- **Vercel**: Great for serverless deployments
-- **Heroku**: Classic platform (paid plans)
-- **Fly.io**: Global edge network deployment
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=facebook%2Freact,vuejs%2Fvue&style=aesthetic)](https://github-stars-history-visualizer.vercel.app?repos=facebook%2Freact,vuejs%2Fvue)
+```
 
-The app automatically handles port selection and works out of the box on most platforms.
+### Example 3: Dark Theme for Dark Mode Projects
 
-## Notes
+```markdown
+[![Star History Chart](https://github-stars-history-visualizer.vercel.app/api/chart-image?repos=username%2Frepo&style=dark)](https://github-stars-history-visualizer.vercel.app?repo=username%2Frepo)
+```
 
-- Data is stored in the `data/` directory as JSON files
-- Each repository's data is cached separately
-- The cache persists between server restarts
-- For best performance with large repositories, consider using GitHub authentication to increase rate limits
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by [github-readme-stats](https://github.com/anuraghazra/github-readme-stats)
+- Built with [Chart.js](https://www.chartjs.org/)
+- Powered by [GitHub API](https://docs.github.com/en/rest)
+
+---
+
+**Made with ❤️ for the GitHub community**

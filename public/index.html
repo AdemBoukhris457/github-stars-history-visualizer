@@ -5,6 +5,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitHub Stars History Visualizer</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Shared style configuration - matches server.js getStyleConfig()
+        const STYLE_CONFIG = {
+            professional: {
+                colors: ['#2563eb', '#dc2626', '#16a34a', '#ca8a04', '#9333ea', '#ea580c', '#0891b2', '#be185d'],
+                tension: 0.1,
+                strokeWidth: 2.5,
+                pointRadius: 3,
+                pointStroke: 'white',
+                pointStrokeWidth: 2,
+                fill: false,
+                fillOpacity: '15',
+                bgGradient: ['#f7fafc', '#edf2f7'],
+                bgStroke: 'rgba(226, 232, 240, 0.8)',
+                gridColor: 'rgba(0, 0, 0, 0.05)',
+                textColor: '#1f2937',
+                legendTextColor: '#374151',
+                tickColor: '#6b7280',
+                title: 'GitHub Stars Over Time',
+                titleSize: 20,
+                titleWeight: 600,
+                showEmoji: false
+            },
+            aesthetic: {
+                colors: [
+                    { start: '#667eea', end: '#764ba2' },
+                    { start: '#f093fb', end: '#f5576c' },
+                    { start: '#4facfe', end: '#00f2fe' },
+                    { start: '#43e97b', end: '#38f9d7' },
+                    { start: '#fa709a', end: '#fee140' },
+                    { start: '#30cfd0', end: '#330867' },
+                    { start: '#a8edea', end: '#fed6e3' },
+                    { start: '#ff9a9e', end: '#fecfef' }
+                ],
+                tension: 0.5,
+                strokeWidth: 3,
+                pointRadius: 4,
+                pointStroke: 'white',
+                pointStrokeWidth: 2.5,
+                fill: true,
+                fillOpacity: '80',
+                bgGradient: ['#0f4c75', '#3282b8', '#bbe1fa'],
+                bgStroke: 'rgba(255,255,255,0.2)',
+                gridColor: 'rgba(255, 255, 255, 0.2)',
+                textColor: '#ffffff',
+                legendTextColor: '#ffffff',
+                tickColor: 'rgba(255, 255, 255, 0.9)',
+                title: '⭐ GitHub Stars Over Time',
+                titleSize: 24,
+                titleWeight: 700,
+                showEmoji: true
+            },
+            dark: {
+                colors: ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#14b8a6'],
+                tension: 0.4,
+                strokeWidth: 3,
+                pointRadius: 4,
+                pointStroke: '#1a1a2e',
+                pointStrokeWidth: 2,
+                fill: true,
+                fillOpacity: '30',
+                bgGradient: ['#1a1a2e', '#16213e', '#0f3460'],
+                bgStroke: 'rgba(255,255,255,0.1)',
+                gridColor: 'rgba(255, 255, 255, 0.1)',
+                textColor: '#ffffff',
+                legendTextColor: '#ffffff',
+                tickColor: 'rgba(255, 255, 255, 0.9)',
+                title: '⭐ GitHub Stars Over Time',
+                titleSize: 22,
+                titleWeight: 700,
+                showEmoji: true
+            },
+            minimal: {
+                colors: ['#64748b', '#475569', '#334155', '#1e293b', '#0f172a', '#94a3b8', '#cbd5e1', '#e2e8f0'],
+                tension: 0,
+                strokeWidth: 2,
+                pointRadius: 0,
+                pointStroke: '#fff',
+                pointStrokeWidth: 2,
+                fill: false,
+                fillOpacity: '00',
+                bgGradient: ['#ffffff', '#ffffff'],
+                bgStroke: '#e5e7eb',
+                gridColor: 'rgba(0, 0, 0, 0.05)',
+                textColor: '#1f2937',
+                legendTextColor: '#4a5568',
+                tickColor: '#6b7280',
+                title: 'GitHub Stars Over Time',
+                titleSize: 18,
+                titleWeight: 600,
+                showEmoji: false
+            },
+            vibrant: {
+                colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f7b731', '#ee5a6f', '#00d2d3', '#ff9ff3', '#54a0ff'],
+                tension: 0.6,
+                strokeWidth: 4,
+                pointRadius: 5,
+                pointStroke: '#fff',
+                pointStrokeWidth: 3,
+                fill: true,
+                fillOpacity: '40',
+                bgGradient: ['#ff6b6b', '#4ecdc4', '#45b7d1'],
+                bgStroke: 'rgba(255,255,255,0.3)',
+                gridColor: 'rgba(255, 255, 255, 0.2)',
+                textColor: '#ffffff',
+                legendTextColor: '#ffffff',
+                tickColor: 'rgba(255, 255, 255, 0.95)',
+                title: '⭐ GitHub Stars Over Time',
+                titleSize: 24,
+                titleWeight: 800,
+                showEmoji: true
+            },
+            pastel: {
+                colors: ['#ffeaa7', '#fab1a0', '#fd79a8', '#fdcb6e', '#e17055', '#74b9ff', '#a29bfe', '#fd79a8'],
+                tension: 0.5,
+                strokeWidth: 3,
+                pointRadius: 4,
+                pointStroke: '#fff',
+                pointStrokeWidth: 2.5,
+                fill: true,
+                fillOpacity: '60',
+                bgGradient: ['#ffeaa7', '#fab1a0', '#fd79a8'],
+                bgStroke: 'rgba(255,255,255,0.5)',
+                gridColor: 'rgba(0, 0, 0, 0.05)',
+                textColor: '#1f2937',
+                legendTextColor: '#4a5568',
+                tickColor: '#6b7280',
+                title: '⭐ GitHub Stars Over Time',
+                titleSize: 22,
+                titleWeight: 700,
+                showEmoji: true
+            },
+            neon: {
+                colors: ['#8a2be2', '#00ffff', '#ff00ff', '#00ff00', '#ffff00', '#ff1493', '#00bfff', '#ff00ff'],
+                tension: 0.5,
+                strokeWidth: 4,
+                pointRadius: 5,
+                pointStroke: '#0a0a0a',
+                pointStrokeWidth: 3,
+                fill: true,
+                fillOpacity: 'CC',
+                bgGradient: ['#0a0a0a', '#1a0033', '#330066'],
+                bgStroke: 'rgba(138, 43, 226, 0.5)',
+                gridColor: 'rgba(138, 43, 226, 0.2)',
+                textColor: '#ffffff',
+                legendTextColor: '#ffffff',
+                tickColor: 'rgba(255, 255, 255, 0.9)',
+                title: '⭐ GitHub Stars Over Time',
+                titleSize: 24,
+                titleWeight: 800,
+                showEmoji: true
+            },
+            corporate: {
+                colors: ['#1e40af', '#059669', '#dc2626', '#7c3aed', '#ea580c', '#0891b2', '#be185d', '#475569'],
+                tension: 0.2,
+                strokeWidth: 2,
+                pointRadius: 3,
+                pointStroke: '#fff',
+                pointStrokeWidth: 2,
+                fill: false,
+                fillOpacity: '10',
+                bgGradient: ['#f8f9fa', '#e9ecef'],
+                bgStroke: '#dee2e6',
+                gridColor: 'rgba(0, 0, 0, 0.06)',
+                textColor: '#1f2937',
+                legendTextColor: '#4a5568',
+                tickColor: '#6b7280',
+                title: 'GitHub Stars Over Time',
+                titleSize: 20,
+                titleWeight: 600,
+                showEmoji: false
+            }
+        };
+
+        function getStyleConfig(style) {
+            return STYLE_CONFIG[style] || STYLE_CONFIG.professional;
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -894,6 +1072,9 @@
 
             const sortedDates = Array.from(allDates).sort();
 
+            // Get style configuration
+            const styleConfig = getStyleConfig(chartStyle);
+
             // Create datasets for each repository
             Object.entries(chartData).forEach(([key, data]) => {
                 if (!data.timeline) return;
@@ -913,204 +1094,72 @@
                     return lastCount;
                 });
 
-                // Apply different styles based on chartStyle
-                if (chartStyle === 'professional') {
-                    const professionalColors = [
-                        '#2563eb', '#dc2626', '#16a34a', '#ca8a04',
-                        '#9333ea', '#ea580c', '#0891b2', '#be185d'
-                    ];
-                    const color = professionalColors[colorIndex % professionalColors.length];
-                    datasets.push({
+                // Get color based on style
+                let color, gradient;
+                if (chartStyle === 'aesthetic' && Array.isArray(styleConfig.colors[0])) {
+                    // Aesthetic uses gradient
+                    gradient = styleConfig.colors[colorIndex % styleConfig.colors.length];
+                    color = gradient.start;
+                } else {
+                    color = styleConfig.colors[colorIndex % styleConfig.colors.length];
+                }
+
+                // Create dataset configuration
+                const dataset = {
                         label: key,
                         data: starsData,
-                        borderColor: color,
-                        backgroundColor: color + '15',
-                        borderWidth: 2.5,
-                        fill: false,
-                        tension: 0.1,
-                        pointRadius: 3,
-                        pointHoverRadius: 7,
+                    borderWidth: styleConfig.strokeWidth,
+                    fill: styleConfig.fill,
+                    tension: styleConfig.tension,
+                    pointRadius: styleConfig.pointRadius,
+                    pointHoverRadius: styleConfig.pointRadius * 2.5,
                         pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverBorderWidth: 3,
-                        pointHoverBackgroundColor: '#fff'
-                    });
-                } else if (chartStyle === 'aesthetic') {
-                    const aestheticGradients = [
-                        { start: '#667eea', end: '#764ba2' },
-                        { start: '#f093fb', end: '#f5576c' },
-                        { start: '#4facfe', end: '#00f2fe' },
-                        { start: '#43e97b', end: '#38f9d7' },
-                        { start: '#fa709a', end: '#fee140' },
-                        { start: '#30cfd0', end: '#330867' },
-                        { start: '#a8edea', end: '#fed6e3' },
-                        { start: '#ff9a9e', end: '#fecfef' }
-                    ];
-                    const gradient = aestheticGradients[colorIndex % aestheticGradients.length];
+                    pointBorderColor: styleConfig.pointStroke,
+                    pointBorderWidth: styleConfig.pointStrokeWidth,
+                    pointHoverBorderWidth: styleConfig.pointStrokeWidth + 1,
+                    pointHoverBackgroundColor: styleConfig.pointStroke === '#fff' ? '#fff' : color
+                };
+
+                // Handle gradients for aesthetic style
+                if (chartStyle === 'aesthetic' && gradient) {
                     const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
                     gradientFill.addColorStop(0, gradient.start + '80');
                     gradientFill.addColorStop(1, gradient.end + '10');
                     const gradientStroke = ctx.createLinearGradient(0, 0, 0, 400);
                     gradientStroke.addColorStop(0, gradient.start);
                     gradientStroke.addColorStop(1, gradient.end);
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: gradientStroke,
-                        backgroundColor: gradientFill,
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.5,
-                        pointRadius: 4,
-                        pointHoverRadius: 9,
-                        pointBackgroundColor: gradient.start,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2.5,
-                        pointHoverBorderWidth: 3.5,
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: gradient.start
-                    });
-                } else if (chartStyle === 'dark') {
-                    const darkColors = [
-                        '#8b5cf6', '#ec4899', '#06b6d4', '#10b981',
-                        '#f59e0b', '#ef4444', '#6366f1', '#14b8a6'
-                    ];
-                    const color = darkColors[colorIndex % darkColors.length];
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: color,
-                        backgroundColor: color + '30',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#1a1a2e',
-                        pointBorderWidth: 2,
-                        pointHoverBorderWidth: 3,
-                        pointHoverBackgroundColor: '#fff'
-                    });
-                } else if (chartStyle === 'minimal') {
-                    const minimalColors = [
-                        '#64748b', '#475569', '#334155', '#1e293b',
-                        '#0f172a', '#94a3b8', '#cbd5e1', '#e2e8f0'
-                    ];
-                    const color = minimalColors[colorIndex % minimalColors.length];
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: color,
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        fill: false,
-                        tension: 0,
-                        pointRadius: 0,
-                        pointHoverRadius: 5,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
-                    });
-                } else if (chartStyle === 'vibrant') {
-                    const vibrantColors = [
-                        '#ff6b6b', '#4ecdc4', '#45b7d1', '#f7b731',
-                        '#ee5a6f', '#00d2d3', '#ff9ff3', '#54a0ff'
-                    ];
-                    const color = vibrantColors[colorIndex % vibrantColors.length];
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: color,
-                        backgroundColor: color + '40',
-                        borderWidth: 4,
-                        fill: true,
-                        tension: 0.6,
-                        pointRadius: 5,
-                        pointHoverRadius: 10,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: color,
-                        pointBorderWidth: 3,
-                        pointHoverBorderWidth: 4
-                    });
-                } else if (chartStyle === 'pastel') {
-                    const pastelColors = [
-                        '#ffeaa7', '#fab1a0', '#fd79a8', '#fdcb6e',
-                        '#e17055', '#74b9ff', '#a29bfe', '#fd79a8'
-                    ];
-                    const color = pastelColors[colorIndex % pastelColors.length];
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: color,
-                        backgroundColor: color + '60',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.5,
-                        pointRadius: 4,
-                        pointHoverRadius: 8,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: color,
-                        pointBorderWidth: 2.5,
-                        pointHoverBorderWidth: 3.5
-                    });
-                } else if (chartStyle === 'neon') {
-                    const neonColors = [
-                        '#8a2be2', '#00ffff', '#ff00ff', '#00ff00',
-                        '#ffff00', '#ff1493', '#00bfff', '#ff00ff'
-                    ];
-                    const color = neonColors[colorIndex % neonColors.length];
+                    dataset.borderColor = gradientStroke;
+                    dataset.backgroundColor = gradientFill;
+                    dataset.pointBackgroundColor = gradient.start;
+                    dataset.pointHoverBorderColor = gradient.start;
+                } else {
+                    // Solid colors
+                    dataset.borderColor = color;
+                    if (styleConfig.fill) {
+                        dataset.backgroundColor = color + styleConfig.fillOpacity;
+                    } else {
+                        dataset.backgroundColor = 'transparent';
+                    }
+                }
+
+                // Special handling for neon style
+                if (chartStyle === 'neon') {
                     const neonGlow = ctx.createLinearGradient(0, 0, 0, 400);
                     neonGlow.addColorStop(0, color + 'CC');
                     neonGlow.addColorStop(1, color + '20');
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: color,
-                        backgroundColor: neonGlow,
-                        borderWidth: 4,
-                        fill: true,
-                        tension: 0.5,
-                        pointRadius: 5,
-                        pointHoverRadius: 10,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#0a0a0a',
-                        pointBorderWidth: 3,
-                        pointHoverBorderWidth: 4,
-                        shadowBlur: 10,
-                        shadowColor: color
-                    });
-                } else if (chartStyle === 'corporate') {
-                    const corporateColors = [
-                        '#1e40af', '#059669', '#dc2626', '#7c3aed',
-                        '#ea580c', '#0891b2', '#be185d', '#475569'
-                    ];
-                    const color = corporateColors[colorIndex % corporateColors.length];
-                    datasets.push({
-                        label: key,
-                        data: starsData,
-                        borderColor: color,
-                        backgroundColor: color + '10',
-                        borderWidth: 2,
-                        fill: false,
-                        tension: 0.2,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverBorderWidth: 3
-                    });
+                    dataset.backgroundColor = neonGlow;
+                    dataset.shadowBlur = 10;
+                    dataset.shadowColor = color;
                 }
 
+                datasets.push(dataset);
                 colorIndex++;
             });
 
             // Update stats
             updateStats();
 
-            // Chart options based on style
+            // Chart options based on style - using shared config
             const getAnimationDuration = (style) => {
                 const longAnimations = ['aesthetic', 'vibrant', 'neon', 'pastel'];
                 return longAnimations.includes(style) ? 2000 : 1000;
@@ -1130,41 +1179,22 @@
                 }
             };
             
-            // Helper function to get style-specific options
-            const getStyleOptions = (style) => {
-                const isDark = ['dark', 'neon', 'aesthetic'].includes(style);
-                const isLight = ['professional', 'minimal', 'corporate'].includes(style);
-                const isVibrant = style === 'vibrant';
-                const isPastel = style === 'pastel';
-                
-                let textColor, gridColor, tickColor;
-                
-                if (isDark) {
-                    textColor = '#ffffff';
-                    gridColor = 'rgba(255, 255, 255, 0.1)';
-                    tickColor = 'rgba(255, 255, 255, 0.9)';
-                } else if (isVibrant || isPastel) {
-                    textColor = '#ffffff';
-                    gridColor = 'rgba(255, 255, 255, 0.2)';
-                    tickColor = 'rgba(255, 255, 255, 0.95)';
-                } else {
-                    textColor = '#1f2937';
-                    gridColor = 'rgba(0, 0, 0, 0.05)';
-                    tickColor = '#6b7280';
-                }
-                
-                return {
-                    textColor,
-                    gridColor,
-                    tickColor,
-                    isDark: isDark || isVibrant || isPastel
-                };
-            };
+            // Determine if dark theme
+            const isDark = ['dark', 'neon', 'aesthetic'].includes(chartStyle) || 
+                          (chartStyle === 'vibrant' || chartStyle === 'pastel');
             
-            const styleOpts = getStyleOptions(chartStyle);
+            // Tooltip background based on theme
+            const tooltipBg = isDark 
+                ? (chartStyle === 'dark' ? 'rgba(26, 26, 46, 0.95)' : 'rgba(10, 10, 10, 0.95)')
+                : 'rgba(255, 255, 255, 0.98)';
+            const tooltipText = isDark ? '#ffffff' : '#1f2937';
+            const tooltipBody = isDark ? '#e2e8f0' : '#4a5568';
 
-            if (chartStyle === 'professional') {
-                // Professional chart options
+            // Title text with emoji handling
+            const titleText = styleConfig.showEmoji ? styleConfig.title : styleConfig.title.replace('⭐ ', '');
+            const emoji = styleConfig.showEmoji ? '⭐ ' : '';
+            
+            // Create unified chart options using style config
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
@@ -1176,14 +1206,14 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'GitHub Stars Over Time',
+                            text: titleText,
                                 font: { 
-                                    size: 20,
-                                    weight: '600',
+                                size: styleConfig.titleSize,
+                                weight: String(styleConfig.titleWeight),
                                     family: "'Segoe UI', sans-serif"
                                 },
-                                color: '#1f2937',
-                                padding: { bottom: 20 }
+                            color: styleConfig.textColor,
+                            padding: { bottom: chartStyle === 'professional' ? 20 : 25 }
                             },
                             legend: {
                                 display: true,
@@ -1191,198 +1221,34 @@
                                 align: 'end',
                                 labels: {
                                     usePointStyle: true,
-                                    padding: 15,
-                                    font: { size: 13, weight: '500' },
-                                    color: '#374151'
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleFont: { size: 14, weight: '600' },
-                                bodyFont: { size: 13 },
-                                borderColor: 'rgba(255, 255, 255, 0.1)',
-                                borderWidth: 1,
-                                displayColors: true,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' stars';
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                display: true,
-                                grid: {
-                                    display: true,
-                                    color: 'rgba(0, 0, 0, 0.05)',
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    font: { size: 11 },
-                                    color: '#6b7280',
-                                    maxRotation: 45,
-                                    minRotation: 0
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Date',
-                                    font: { size: 13, weight: '600' },
-                                    color: '#374151',
-                                    padding: { top: 10 }
-                                }
-                            },
-                            y: {
-                                display: true,
-                                grid: {
-                                    display: true,
-                                    color: 'rgba(0, 0, 0, 0.05)',
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    font: { size: 11 },
-                                    color: '#6b7280',
-                                    callback: function(value) {
-                                        return value.toLocaleString();
-                                    }
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Number of Stars',
-                                    font: { size: 13, weight: '600' },
-                                    color: '#374151',
-                                    padding: { bottom: 10 }
-                                },
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-            } else {
-                // Create unified chart options for all styles
-                const getChartConfig = (style) => {
-                    const configs = {
-                        aesthetic: {
-                            title: '⭐ GitHub Stars Over Time',
-                            titleSize: 24,
-                            titleWeight: '700',
-                            showEmoji: true,
-                            tooltipBg: 'rgba(255, 255, 255, 0.95)',
-                            tooltipText: '#1f2937',
-                            tooltipBody: '#374151'
-                        },
-                        dark: {
-                            title: '⭐ GitHub Stars Over Time',
-                            titleSize: 22,
-                            titleWeight: '700',
-                            showEmoji: true,
-                            tooltipBg: 'rgba(26, 26, 46, 0.95)',
-                            tooltipText: '#ffffff',
-                            tooltipBody: '#e2e8f0'
-                        },
-                        minimal: {
-                            title: 'GitHub Stars Over Time',
-                            titleSize: 18,
-                            titleWeight: '600',
-                            showEmoji: false,
-                            tooltipBg: 'rgba(255, 255, 255, 0.98)',
-                            tooltipText: '#1f2937',
-                            tooltipBody: '#4a5568'
-                        },
-                        vibrant: {
-                            title: '⭐ GitHub Stars Over Time',
-                            titleSize: 24,
-                            titleWeight: '800',
-                            showEmoji: true,
-                            tooltipBg: 'rgba(255, 255, 255, 0.95)',
-                            tooltipText: '#1f2937',
-                            tooltipBody: '#374151'
-                        },
-                        pastel: {
-                            title: '⭐ GitHub Stars Over Time',
-                            titleSize: 22,
-                            titleWeight: '700',
-                            showEmoji: true,
-                            tooltipBg: 'rgba(255, 255, 255, 0.98)',
-                            tooltipText: '#1f2937',
-                            tooltipBody: '#4a5568'
-                        },
-                        neon: {
-                            title: '⭐ GitHub Stars Over Time',
-                            titleSize: 24,
-                            titleWeight: '800',
-                            showEmoji: true,
-                            tooltipBg: 'rgba(10, 10, 10, 0.95)',
-                            tooltipText: '#ffffff',
-                            tooltipBody: '#e2e8f0'
-                        },
-                        corporate: {
-                            title: 'GitHub Stars Over Time',
-                            titleSize: 20,
-                            titleWeight: '600',
-                            showEmoji: false,
-                            tooltipBg: 'rgba(255, 255, 255, 0.98)',
-                            tooltipText: '#1f2937',
-                            tooltipBody: '#4a5568'
-                        }
-                    };
-                    return configs[style] || configs.aesthetic;
-                };
-                
-                const config = getChartConfig(chartStyle);
-                const emoji = config.showEmoji ? '⭐ ' : '';
-                
-                // Aesthetic and other styles chart options
-                chart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: sortedDates,
-                        datasets: datasets
-                    },
-                    options: {
-                        ...baseOptions,
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: config.title,
+                                pointStyle: 'circle',
+                                padding: chartStyle === 'professional' ? 15 : 20,
                                 font: { 
-                                    size: config.titleSize,
-                                    weight: config.titleWeight,
-                                    family: "'Segoe UI', sans-serif"
+                                    size: chartStyle === 'professional' ? 13 : 14, 
+                                    weight: chartStyle === 'professional' ? '500' : '600' 
                                 },
-                                color: styleOpts.textColor,
-                                padding: { bottom: 25 }
-                            },
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                align: 'end',
-                                labels: {
-                                    usePointStyle: true,
-                                    pointStyle: 'circle',
-                                    padding: 20,
-                                    font: { size: 14, weight: '600' },
-                                    color: styleOpts.textColor,
-                                    textStrokeColor: styleOpts.isDark ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
-                                    textStrokeWidth: styleOpts.isDark ? 1 : 0
+                                color: styleConfig.legendTextColor
                                 }
                             },
                             tooltip: {
                                 mode: 'index',
                                 intersect: false,
-                                backgroundColor: config.tooltipBg,
-                                padding: 15,
-                                titleFont: { size: 15, weight: '700' },
-                                bodyFont: { size: 14, weight: '500' },
-                                titleColor: config.tooltipText,
-                                bodyColor: config.tooltipBody,
-                                borderColor: styleOpts.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
-                                borderWidth: 2,
+                            backgroundColor: tooltipBg,
+                            padding: chartStyle === 'professional' ? 12 : 15,
+                            titleFont: { 
+                                size: chartStyle === 'professional' ? 14 : 15, 
+                                weight: chartStyle === 'professional' ? '600' : '700' 
+                            },
+                            bodyFont: { 
+                                size: chartStyle === 'professional' ? 13 : 14, 
+                                weight: chartStyle === 'professional' ? '400' : '500' 
+                            },
+                            titleColor: tooltipText,
+                            bodyColor: tooltipBody,
+                            borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+                            borderWidth: chartStyle === 'professional' ? 1 : 2,
                                 displayColors: true,
-                                boxPadding: 8,
+                            boxPadding: chartStyle === 'professional' ? 6 : 8,
                                 callbacks: {
                                     label: function(context) {
                                         return emoji + context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' stars';
@@ -1395,50 +1261,61 @@
                                 display: true,
                                 grid: {
                                     display: true,
-                                    color: styleOpts.gridColor,
+                                color: styleConfig.gridColor,
                                     drawBorder: false
                                 },
                                 ticks: {
-                                    font: { size: 12, weight: '500' },
-                                    color: styleOpts.tickColor,
+                                font: { 
+                                    size: chartStyle === 'professional' ? 11 : 12, 
+                                    weight: chartStyle === 'professional' ? '400' : '500' 
+                                },
+                                color: styleConfig.tickColor,
                                     maxRotation: 45,
                                     minRotation: 0
                                 },
                                 title: {
                                     display: true,
-                                    text: (config.showEmoji ? '📅 ' : '') + 'Date',
-                                    font: { size: 14, weight: '600' },
-                                    color: styleOpts.textColor,
-                                    padding: { top: 15 }
+                                text: (styleConfig.showEmoji ? '📅 ' : '') + 'Date',
+                                font: { 
+                                    size: chartStyle === 'professional' ? 13 : 14, 
+                                    weight: '600' 
+                                },
+                                color: styleConfig.textColor,
+                                padding: { top: chartStyle === 'professional' ? 10 : 15 }
                                 }
                             },
                             y: {
                                 display: true,
                                 grid: {
                                     display: true,
-                                    color: styleOpts.gridColor,
+                                color: styleConfig.gridColor,
                                     drawBorder: false
                                 },
                                 ticks: {
-                                    font: { size: 12, weight: '500' },
-                                    color: styleOpts.tickColor,
+                                font: { 
+                                    size: chartStyle === 'professional' ? 11 : 12, 
+                                    weight: chartStyle === 'professional' ? '400' : '500' 
+                                },
+                                color: styleConfig.tickColor,
                                     callback: function(value) {
                                         return value.toLocaleString();
                                     }
                                 },
                                 title: {
                                     display: true,
-                                    text: (config.showEmoji ? '⭐ ' : '') + 'Number of Stars',
-                                    font: { size: 14, weight: '600' },
-                                    color: styleOpts.textColor,
-                                    padding: { bottom: 15 }
+                                text: emoji + 'Number of Stars',
+                                font: { 
+                                    size: chartStyle === 'professional' ? 13 : 14, 
+                                    weight: '600' 
+                                },
+                                color: styleConfig.textColor,
+                                padding: { bottom: chartStyle === 'professional' ? 10 : 15 }
                                 },
                                 beginAtZero: true
                             }
                         }
                     }
                 });
-            }
         }
 
         function updateStats() {
